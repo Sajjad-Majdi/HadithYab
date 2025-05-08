@@ -1,0 +1,10 @@
+flask
+requests
+huggingface-hub
+numpy
+vecs
+supabase
+sentence-transformers
+torch
+tqdm
+SQLAlchemy
