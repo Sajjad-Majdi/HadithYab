@@ -4,7 +4,10 @@ huggingface-hub
 numpy
 vecs
 supabase
+flask-cors
 sentence-transformers
 torch
 tqdm
 SQLAlchemy
+waitress
+logging

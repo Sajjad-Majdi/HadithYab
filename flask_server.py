@@ -3,10 +3,14 @@ from flask_cors import CORS
 import logging
 from config import Config
 from madules import find_similar_records
-import os
+
 
 app = Flask(__name__, template_folder="templates")
 app.config.from_object(Config)
+app.config['ENV'] = 'production'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 CORS(app)
 
 # configure console logging only
@@ -22,13 +26,15 @@ def health_check():
 
 @app.errorhandler(404)
 def not_found(e):
-    return render_template("404.html"), 404
+    # Return JSON for 404 errors since HTML templates are not provided
+    return jsonify(error="Resource not found"), 404
 
 
 @app.errorhandler(500)
 def server_error(e):
     app.logger.exception("Server error:")
-    return render_template("500.html"), 500
+    # Return JSON for 500 errors instead of missing template
+    return jsonify(error="An internal server error occurred"), 500
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -77,9 +83,3 @@ def index():
     # For POST requests, render with results or error message
     # Pass the query back to the template to display in the input box
     return render_template('index.html', query=query, results=results, error_message=error_message)
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    # In production, consider using a WSGI server like Gunicorn; DEBUG is read from config
-    app.run(host="0.0.0.0", port=port)
