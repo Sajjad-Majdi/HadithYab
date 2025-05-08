@@ -4,13 +4,17 @@ import os
 import numpy as np
 import vecs
 from vecs import IndexMeasure, IndexMethod
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Configurations:
 _DIM = 1024
 
 _DB_URL = os.getenv("CONNECTION_STRING")
+
 JINA_API = os.getenv("JINA_API_KEY")
+
 HF_API = os.getenv("HF_API_KEY")
 
 MY_REPO = "Sajjad313/my-Jira-embedding-v3"
@@ -78,9 +82,8 @@ def get_jina_embeddings(text, api_key=JINA_API, model="jina-embeddings-v3", task
     embeddings = [item["embedding"] for item in data["data"]]
     return np.array(embeddings)
 
+
 # Query function with "vecs" library, using connection string
-
-
 def find_similar_records(query_text: str, n: int, collection_name: str) -> list:
     """
     Finds the n most similar records to the query_text in a vecs collection,
@@ -108,9 +111,6 @@ def find_similar_records(query_text: str, n: int, collection_name: str) -> list:
         collection = vx.get_or_create_collection(
             name=collection_name, dimension=_DIM)
         print(f"✅ Accessed collection '{collection_name}'.")
-
-        # Indesing database
-        collection.index(IndexMethod.hnsw,)
 
         # 3. Embed the query text using the global embed function
         print("Embedding query text...")

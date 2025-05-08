@@ -5,7 +5,7 @@ from madules import find_similar_records
 
 COLLECTION_NAME = "jira_hadiths"
 # Set the number of results to return
-NUM_RESULTS = 10
+NUM_RESULTS = 50
 # --- End Configuration ---
 
 # Explicitly tell Flask where to find templates

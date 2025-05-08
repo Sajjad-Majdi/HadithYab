@@ -1,6 +1,13 @@
 # Jira Hadith Search
 
-A simple Flask web application that allows users to search for similar Hadith records stored in a Supabase database using embeddings from Jina AI or Hugging Face.
+A semantic search application enabling users to find Hadith records by entering natural language queries. It leverages advanced embeddings from Jina AI or Hugging Face to retrieve semantically similar results from a Supabase-powered vector database.
+
+## Technical Overview
+
+- Frontend: `HTML, CSS, JS`
+- Backend: `Python Flask`
+- Embedding Model: [`jinaai/jina-embeddings-v3`](https://huggingface.co/jinaai/jina-embeddings-v3)
+- Dataset for Vector Database: [`IslamShia/shia-hadith`](https://github.com/IslamShia/shia-hadith)
 
 ## Features
 
