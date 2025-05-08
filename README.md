@@ -16,16 +16,13 @@ A semantic search application enabling users to find Hadith records by entering 
 - Similarity search using the `vecs` library and Supabase vector store
 - Returns Arabic text, Farsi translation, source, and narrator information
 
-## Embedding_model
+## Embedding Model
 
-This application used `jina-embeddings-v3` as embedding model:
+This application uses the `jina-embeddings-v3` model to generate semantic vector representations of Hadith records. We used the embeddings of `farsi translations` of Hadith records for our vector database.
+You can utilize the model in two ways:
 
-you can find it both ways
-
-- **Jina AI Embeddings**: Use Jina AI’s embedding service (default model: `jina-embeddings-v3`) via the `JINA_API_KEY` to generate high-quality, 1024-dimensional vector representations.
-- **Hugging Face Embeddings**: Use the Hugging Face Inference API or with a pre-trained sentence-transformers model via our Hugging Face page `Sajjad313/my-Jira-embedding-v3` with `HF_API_KEY`; or just download the model from their own page: `jinaai/jina-embeddings-v3`
-
-Embeddings are automatically normalized before being indexed in Supabase for efficient similarity search in our application.
+- **Jina AI Embeddings**: Access the Jina AI embedding service (default: `jina-embeddings-v3`) for high-quality, 1024-dimensional embeddings via a simple API call.
+- **Hugging Face Embeddings**: Use the model through the Hugging Face Inference API with your own HF API key. Since inference is disabled on the official Jina AI page, you can use the compatible model hosted on our page: [Sajjad313/my-Jira-embedding-v3](https://huggingface.co/Sajjad313/my-Jira-embedding-v3), or download it directly from there. This version is identical to the base model.
 
 ## Prerequisites
 
