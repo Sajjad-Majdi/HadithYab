@@ -1,23 +1,21 @@
 import requests
 from huggingface_hub import InferenceClient
-import os
 import numpy as np
 import vecs
-from vecs import IndexMeasure, IndexMethod
-from dotenv import load_dotenv
-load_dotenv()
+from vecs import IndexMeasure
+import logging
+from config import Config
 
 
-# Configurations:
+# Configuration
 _DIM = 1024
 
-_DB_URL = os.getenv("CONNECTION_STRING")
+DB_URL = Config.DB_URL
+JINA_API = Config.JINA_API
+HF_API = Config.HF_API
+MY_REPO = Config.HF_REPO
 
-JINA_API = os.getenv("JINA_API_KEY")
-
-HF_API = os.getenv("HF_API_KEY")
-
-MY_REPO = "Sajjad313/my-Jira-embedding-v3"
+logger = logging.getLogger(__name__)
 
 
 def get_HF_embeddings(text, api_key=HF_API, model=MY_REPO, return_raw=False, mean_pool=True, l2_normalize=True):
@@ -37,8 +35,8 @@ def get_HF_embeddings(text, api_key=HF_API, model=MY_REPO, return_raw=False, mea
                     mean_pooled = mean_pooled / norm
             return mean_pooled
         return result[0]
-    except Exception as e:
-        print("Error:", e)
+    except Exception:
+        logger.error("Error fetching HuggingFace embeddings", exc_info=True)
         return None
 
 
@@ -100,32 +98,32 @@ def find_similar_records(query_text: str, n: int, collection_name: str) -> list:
         ordered by similarity score (closest first), or an empty list
         if an error occurs or no records are found.
     """
-    print(
-        f"Searching for {n} records similar to '{query_text[:50]}...' in collection '{collection_name}'")
+    logger.info("Searching for %d records similar to '%s...' in collection '%s'",
+                n, query_text[:50], collection_name)
 
     try:
         # 1. Connect to vecs
-        vx = vecs.create_client(_DB_URL)
+        vx = vecs.create_client(DB_URL)
 
         # 2. Get the collection
         collection = vx.get_or_create_collection(
             name=collection_name, dimension=_DIM)
-        print(f"✅ Accessed collection '{collection_name}'.")
+        logger.debug("Accessed collection '%s'", collection_name)
 
         # 3. Embed the query text using the global embed function
-        print("Embedding query text...")
+        logger.debug("Embedding query text")
         try:
             query_vector = get_jina_embeddings(query_text, api_key=JINA_API)
             if not isinstance(query_vector, (list, np.ndarray)):
                 raise TypeError(
                     f"Embedding function did not return a list or numpy array, got {type(query_vector)}")
-            print("✅ Query text embedded.")
+            logger.debug("Query text embedded")
         except Exception as e:
-            print(f"❌ Error fetching embeddings: {e}")
+            logger.error("Error fetching embeddings: %s", e)
             raise
 
         # 4. Perform the similarity search, requesting metadata and value (score)
-        print(f"Querying collection for top {n} results...")
+        logger.debug("Querying collection for top %d results", n)
         # Query now returns list of tuples: (id, metadata, score)
         query_results = collection.query(
             data=query_vector[0],
@@ -134,7 +132,7 @@ def find_similar_records(query_text: str, n: int, collection_name: str) -> list:
             include_metadata=True,            # <<< Get metadata directly
             include_value=True                # <<< Get the distance/similarity score
         )
-        print(f"✅ Query completed. Found {len(query_results)} results.")
+        logger.debug("Query completed. Found %d results", len(query_results))
 
         # 5. Extract metadata directly from query results
         # The results are already ordered by similarity score (distance) by the query method.
@@ -145,7 +143,6 @@ def find_similar_records(query_text: str, n: int, collection_name: str) -> list:
         return metadata_list
 
     # Specific errors now bubble up to be handled by Flask
-    except Exception as e:
-        print(
-            f"\n❌ An unexpected error occurred during similarity search: {e}")
+    except Exception:
+        logger.exception("Unexpected error during similarity search")
         raise

@@ -1,18 +1,37 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
+import logging
+from config import Config
 from madules import find_similar_records
+import os
 
-# --- Configuration ---
+app = Flask(__name__, template_folder="templates")
+app.config.from_object(Config)
+CORS(app)
 
-COLLECTION_NAME = "jira_hadiths"
-# Set the number of results to return
-NUM_RESULTS = 50
-# --- End Configuration ---
-
-# Explicitly tell Flask where to find templates
-app = Flask(__name__, template_folder='templates')
+# configure console logging only
+logging.basicConfig(
+    level=app.config["LOG_LEVEL"], format="%(asctime)s %(levelname)s: %(message)s")
+app.logger.setLevel(app.config["LOG_LEVEL"])
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify(status="ok"), 200
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    app.logger.exception("Server error:")
+    return render_template("500.html"), 500
+
+
+@app.route("/", methods=["GET", "POST"])
 def index():
     results = []
     query = ""
@@ -26,8 +45,8 @@ def index():
                 # It returns a list of [id, distance, metadata]
                 similar_records = find_similar_records(
                     query_text=query,
-                    n=NUM_RESULTS,
-                    collection_name=COLLECTION_NAME
+                    n=app.config["NUM_RESULTS"],
+                    collection_name=app.config["COLLECTION_NAME"]
                 )
                 # Format results for the template
                 results = [
@@ -48,8 +67,9 @@ def index():
                     error_message = "نتیجه‌ای برای جستجوی شما یافت نشد."
 
             except Exception as e:
-                print(f"Error during search: {e}")
-                error_message = f"خطا در هنگام جستجو: {str(e)}"
+                # Log exception and show generic error message
+                app.logger.error("Error during search: %s", e)
+                error_message = "خطا در هنگام جستجو. لطفاً بعداً دوباره تلاش کنید."
         else:
             error_message = "لطفاً عبارتی را برای جستجو وارد کنید."
 
@@ -59,5 +79,7 @@ def index():
     return render_template('index.html', query=query, results=results, error_message=error_message)
 
 
-if __name__ == '__main__':
-    app.run(debug=False)  # Remember to turn off debug mode for production
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    # In production, consider using a WSGI server like Gunicorn; DEBUG is read from config
+    app.run(host="0.0.0.0", port=port)
