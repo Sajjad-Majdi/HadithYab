@@ -1,6 +1,6 @@
-# Jira Hadith Search
+# Jina Hadith Search
 
-A semantic search application enabling users to find Hadith records by entering natural language queries. It leverages advanced embeddings from Jina AI or Hugging Face to retrieve semantically similar results from a Supabase-powered vector database.
+A semantic search application enabling users to find Hadith records by entering natural language queries. It leverages embeddings from Jina AI to retrieve semantically similar results from a Supabase-powered vector database.
 
 ## Live Demo
 
