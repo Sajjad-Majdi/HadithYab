@@ -112,14 +112,9 @@ You can utilize the model in two ways:
 
 This application is ready for production deployment behind a WSGI server like **Waitress** or **Gunicorn**.
 
-### Production Deployment
-
 - On Windows, use Waitress (installed via requirements.txt):
 
   ```powershell
   waitress-serve --listen=0.0.0.0:5000 flask_server:app
   ```
 
-## License
-
-This project is licensed under the Apache License 2.0. See the LICENSE file for details.
