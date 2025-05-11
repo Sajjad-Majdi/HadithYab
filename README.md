@@ -2,6 +2,11 @@
 
 A semantic search application enabling users to find Hadith records by entering natural language queries. It leverages advanced embeddings from Jina AI or Hugging Face to retrieve semantically similar results from a Supabase-powered vector database.
 
+## Live Demo
+
+You can try the application live at:  
+[https://hadithyab.com](https://hadithyab.onrender.com/)
+
 ## Technical Overview
 
 - **Frontend:** HTML, CSS, JS (via Jinja2 templates)
@@ -76,6 +81,10 @@ You can utilize the model in two ways:
 ## Usage
 
 1. Run the Flask server:
+
+   uncomment app.run() at the end of the `flask_server.py` then
+
+   then run this in terminal:
 
    ```bash
    python flask_server.py

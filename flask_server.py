@@ -83,3 +83,7 @@ def index():
     # For POST requests, render with results or error message
     # Pass the query back to the template to display in the input box
     return render_template('index.html', query=query, results=results, error_message=error_message)
+
+
+# if __name__ == "__main__":
+#     app.run(debug=False, host="0.0.0.0", port=5000)
