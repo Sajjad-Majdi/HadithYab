@@ -1,0 +1,148 @@
+body {
+    font-family: 'Tahoma', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif; /* Common Persian-friendly fonts */
+    line-height: 1.8;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+    direction: rtl; /* Ensure right-to-left text flow */
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+p {
+    margin-bottom: 15px;
+    text-align: justify;
+}
+
+a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fafafa;
+}
+
+#introduction p {
+    font-size: 1.1em;
+}
+
+details {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+summary {
+    font-weight: bold;
+    cursor: pointer;
+    padding: 10px;
+    background-color: #e9e9e9;
+    border-radius: 3px;
+    margin: -10px -10px 10px -10px; /* Adjust padding to align with details border */
+}
+
+details[open] summary {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 15px;
+}
+
+details div p, details div ul {
+    padding-right: 15px; /* Indent content within details */
+}
+
+ul {
+    list-style-type: disc; /* Or 'circle', 'square' if preferred */
+    padding-right: 20px; /* Standard padding for lists in RTL */
+    margin-bottom: 15px;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+.card-details {
+    background-color: #e6f7ff;
+    border: 1px dashed #007bff;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.card-details p {
+    margin: 5px 0;
+    font-size: 1.1em;
+    text-align: center;
+}
+
+code {
+    font-family: 'Consolas', 'Monaco', 'monospace';
+    background-color: #eee;
+    padding: 2px 5px;
+    border-radius: 3px;
+    direction: ltr; /* Card number and name should be LTR */
+    display: inline-block; /* Allows centering if text-align: center is on parent */
+}
+
+#copyCardNumberBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#copyCardNumberBtn:hover {
+    background-color: #0056b3;
+}
+
+#copyFeedback {
+    display: none; /* Hidden by default */
+    margin-right: 10px; /* RTL equivalent of margin-left */
+    font-size: 0.9em;
+    color: green;
+}
+
+#contact-us p {
+    text-align: center;
+}

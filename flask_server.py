@@ -85,5 +85,10 @@ def index():
     return render_template('index.html', query=query, results=results, error_message=error_message)
 
 
+@app.route("/support", methods=["GET"])
+def support_page():
+    return render_template('support.html')
+
+
 # if __name__ == "__main__":
 #     app.run(debug=False, host="0.0.0.0", port=5000)
