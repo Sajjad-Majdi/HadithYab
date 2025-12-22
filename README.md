@@ -1,74 +1,74 @@
-# Jina Hadith Search
+# حدیث‌یاب هوشمند
 
-A semantic search application enabling users to find Hadith records by entering natural language queries. It leverages embeddings from Jina AI to retrieve semantically similar results from a Supabase-powered vector database.
+یک برنامه جستجوی معنایی که به کاربران امکان می‌دهد با وارد کردن جملات طبیعی، احادیث مرتبط را پیدا کنند. این برنامه از embedding سرویس Jina AI برای بازیابی نتایج معنایی مشابه از یک پایگاه داده برداری سرویس بک اند آماده Supabase استفاده می‌کند.
 
-## Live Demo
+## دموی زنده
 
-You can try the application live at:  
+می‌توانید برنامه را به صورت زنده در آدرس زیر امتحان کنید:  
 [https://hadithyab.com](https://hadithyab.onrender.com/)
 
-## Technical Overview
+## نمای کلی فنی
 
-- **Frontend:** HTML, CSS, JS (via Jinja2 templates)
+- **Frontend:** HTML, CSS, JS (از طریق قالب‌های Jinja2)
 - **Backend:** Python Flask
-- **Embedding Model:** [`jinaai/jina-embeddings-v3`](https://huggingface.co/jinaai/jina-embeddings-v3)
-- **Dataset:** [`IslamShia/shia-hadith`](https://github.com/IslamShia/shia-hadith)
-- **Vector Store:** Supabase + `vecs` library
+- **مدل Embedding:** [`jinaai/jina-embeddings-v3`](https://huggingface.co/jinaai/jina-embeddings-v3)
+- **مجموعه داده:** [`IslamShia/shia-hadith`](https://github.com/IslamShia/shia-hadith)
+- **ذخیره‌ساز برداری:** Supabase + کتابخانه `vecs`
 
-## Features
+## ویژگی‌ها
 
-- Web-based search interface built with Flask and Jinja2
-- Embedding generation via Jina AI or Hugging Face Inference API
-- Similarity search using the `vecs` library and Supabase vector store
-- Returns Arabic text, Farsi translation, source, and narrator information
+- رابط جستجوی تحت وب ساخته شده با Flask و Jinja2
+- تولید embedding از طریق Jina AI یا Hugging Face Inference API
+- جستجوی شباهت با استفاده از کتابخانه `vecs` و ذخیره‌ساز برداری Supabase
+- بازگرداندن متن عربی، ترجمه فارسی، منبع و اطلاعات راوی
 
-## Embedding Model
+## مدل Embedding
 
-This application uses the `jina-embeddings-v3` model to generate semantic vector representations of Hadith records. The embeddings are generated from the Farsi translations of Hadith records for the vector database.
+این برنامه از مدل `jina-embeddings-v3` برای تولید نمایش‌های برداری معنایی از احادیث استفاده می‌کند. این embeddings از ترجمه‌های فارسی احادیث برای پایگاه داده برداری تولید می‌شوند.
 
-You can utilize the model in two ways:
+شما می‌توانید از مدل به دو روش استفاده کنید:
 
-- **Jina AI Embeddings:** Access the Jina AI embedding service (default: `jina-embeddings-v3`) for high-quality, 1024-dimensional embeddings via API.
-- **Hugging Face Embeddings:** Use the model through the Hugging Face Inference API with your own HF API key. If inference is disabled on the official Jina AI page, you can use the compatible model hosted at [Sajjad313/my-Jira-embedding-v3](https://huggingface.co/Sajjad313/my-Jira-embedding-v3).
+- **Jina AI Embeddings:** دسترسی به سرویس embedding Jina AI (پیش‌فرض: `jina-embeddings-v3`) برای embeddings با کیفیت بالا و ۱۰۲۴ بعدی از طریق API.
+- **Hugging Face Embeddings:** استفاده از مدل از طریق Hugging Face Inference API با کلید API خودتان. اگر استنتاج در صفحه رسمی Jina AI غیرفعال باشد، می‌توانید از مدل سازگار میزبانی شده در [Sajjad313/my-Jira-embedding-v3](https://huggingface.co/Sajjad313/my-Jira-embedding-v3) استفاده کنید.
 
-## Prerequisites
+## پیش‌نیازها
 
-- Python 3.8 or newer
-- A virtual environment (recommended)
-- A Supabase account with a vector store set up
-- A `.env` file (optional) to store environment variables locally
-- Environment variables:
-  - `CONNECTION_STRING`: Connection URI for your Supabase vector store (used by search)
-  - `JINA_API_KEY`: API key for Jina AI embedding service
-  - `HF_API_KEY`: API key for Hugging Face Inference API
-  - `COLLECTION_NAME` and `NUM_RESULTS` (optional) to override default search collection name and result count
+- Python 3.8 یا جدیدتر
+- یک محیط مجازی (توصیه می‌شود)
+- یک حساب Supabase با یک ذخیره‌ساز برداری راه‌اندازی شده
+- یک فایل `.env` (اختیاری) برای ذخیره متغیرهای محیطی به صورت محلی
+- متغیرهای محیطی:
+  - `CONNECTION_STRING`: URI اتصال برای ذخیره‌ساز برداری Supabase شما (استفاده شده توسط جستجو)
+  - `JINA_API_KEY`: کلید API برای سرویس embedding Jina AI
+  - `HF_API_KEY`: کلید API برای Hugging Face Inference API
+  - `COLLECTION_NAME` و `NUM_RESULTS` (اختیاری) برای بازنویسی نام مجموعه جستجوی پیش‌فرض و تعداد نتایج
 
-## Installation
+## نصب
 
-1. Clone the repository or download the source code:
+1. مخزن را کلون کنید یا کد منبع را دانلود کنید:
 
    ```bash
    git clone <repository_url>
    cd production
    ```
 
-2. Create and activate a virtual environment:
+2. یک محیط مجازی ایجاد و فعال کنید:
 
    ```bash
    python -m venv venv
-   # On Windows:
+   # در Windows:
    venv\Scripts\activate
-   # On Unix or macOS:
+   # در Unix یا macOS:
    source venv/bin/activate
    ```
 
-3. Install required Python packages:
+3. بسته‌های پایتون مورد نیاز را نصب کنید:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Set environment variables (replace with your own values):
+4. متغیرهای محیطی را تنظیم کنید (با مقادیر خودتان جایگزین کنید):
 
    ```bash
    set CONNECTION_STRING="your_connection_string"
@@ -76,43 +76,43 @@ You can utilize the model in two ways:
    set HF_API_KEY="your_hf_api_key"
    ```
 
-   On Unix/macOS, use `export` instead of `set`.
+   در Unix/macOS، به جای `set` از `export` استفاده کنید.
 
-## Usage
+## استفاده
 
-1. Run the Flask server:
+1. سرور Flask را اجرا کنید:
 
-   uncomment app.run() at the end of the `flask_server.py` then
+   app.run() را در انتهای فایل `flask_server.py` از حالت کامنت خارج کنید
 
-   then run this in terminal:
+   سپس این دستور را در ترمینال اجرا کنید:
 
    ```bash
    python flask_server.py
    ```
 
-2. Open your browser and navigate to `http://127.0.0.1:5000`.
-3. Enter a search query in the input box and submit to see the top similar Hadith records.
+2. مرورگر خود را باز کنید و به `http://127.0.0.1:5000` بروید.
+3. یک جستجو در کادر ورودی وارد کنید و ارسال کنید تا احادیث مشابه برتر را ببینید.
 
-## Project Structure
+## ساختار پروژه
 
 ```
 .
-├── config.py              # Application configuration and env var loader
-├── flask_server.py        # Flask app entry point
-├── madules.py             # Embedding and similarity search utilities
-├── dev_maduels.py         # Batch embedding and upsert utilities (developer use)
-├── requirements.txt       # Python dependencies
-├── .env                   # Local environment variable overrides (optional)
+├── config.py              # پیکربندی برنامه و بارگذاری متغیرهای محیطی
+├── flask_server.py        # نقطه ورودی برنامه Flask
+├── madules.py             # ابزارهای embedding و جستجوی شباهت
+├── dev_maduels.py         # ابزارهای embedding و upsert دسته‌ای (استفاده توسعه‌دهنده)
+├── requirements.txt       # وابستگی‌های پایتون
+├── .env                   # بازنویسی‌های محلی متغیرهای محیطی (اختیاری)
 ├── templates/
-│   └── index.html         # Jinja2 template for search UI
-└── README.md              # Project overview and instructions
+│   └── index.html         # قالب Jinja2 برای رابط کاربری جستجو
+└── README.md              # نمای کلی پروژه و دستورالعمل‌ها
 ```
 
-## Production Deployment
+## استقرار در محیط تولید
 
-This application is ready for production deployment behind a WSGI server like **Waitress** or **Gunicorn**.
+این برنامه آماده استقرار در محیط تولید پشت یک سرور WSGI مانند **Waitress** یا **Gunicorn** است.
 
-- On Windows, use Waitress (installed via requirements.txt):
+- در Windows، از Waitress استفاده کنید (از طریق requirements.txt نصب شده):
 
   ```powershell
   waitress-serve --listen=0.0.0.0:5000 flask_server:app
