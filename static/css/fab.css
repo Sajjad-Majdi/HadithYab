@@ -1,0 +1,54 @@
+.fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px; /* Diameter of the circle */
+  height: 60px; /* Diameter of the circle */
+  background-color: #28a745; /* Example green color, can be changed */
+  border-radius: 50%; /* Makes it a circle */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: white;
+  transition: width 0.3s ease, border-radius 0.3s ease, background-color 0.3s ease, padding 0.3s ease; /* Added padding transition */
+  overflow: hidden; /* Important for the text hiding/showing */
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.fab-icon {
+  width: 24px; /* Adjust as needed */
+  height: 24px; /* Adjust as needed */
+  transition: margin-right 0.3s ease; /* For smoother text appearance */
+  flex-shrink: 0; /* Prevent icon from shrinking when text appears */
+}
+
+.fab-text {
+  font-size: 16px; /* Adjust as needed */
+  margin-left: 0;
+  max-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, max-width 0.3s ease 0.1s, margin-left 0.3s ease; /* Staggered transition */
+}
+
+.fab:hover {
+  width: 200px; /* Width of the pill shape */
+  border-radius: 30px; /* Pill shape (height/2) */
+  background-color: #218838; /* Darker green on hover */
+  justify-content: flex-start; /* Align items to the start for pill shape */
+  padding-left: 18px; /* (60-24)/2 = 18 to keep icon centered initially, then give space for text */
+  padding-right: 18px; /* Add padding for the text end */
+}
+
+.fab:hover .fab-icon {
+  /* margin-right: 8px; /* If icon needs to move slightly, but padding on .fab:hover might be better */
+}
+
+.fab:hover .fab-text {
+  opacity: 1;
+  visibility: visible;
+  max-width: 150px; /* Adjust based on text length */
+  margin-left: 10px; /* Space between icon and text */
+}
