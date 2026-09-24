@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import threading
 import time
 from collections import OrderedDict
 from contextlib import asynccontextmanager
@@ -16,7 +17,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.concurrency import run_in_threadpool
 
 from .core.index import get_index
 from .guard import Guard
@@ -34,8 +34,9 @@ log = logging.getLogger("hadithyab")
 
 @asynccontextmanager
 async def lifespan(_app):
-    # Load the index before the first visitor arrives, not during their search.
-    await run_in_threadpool(get_index)
+    # Load the index in the background: the port opens at once (Render waits
+    # for it), and a search that arrives early simply waits for the load.
+    threading.Thread(target=get_index, daemon=True).start()
     yield
 
 
@@ -75,12 +76,12 @@ async def bad_input(_request, _exc):
     return JSONResponse({"error": "ورودی نامعتبر است."}, status_code=422)
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
-    return {"status": "ok", "hadiths": len(get_index()), "version": VERSION}
+    return {"status": "ok", "texts": len(get_index()), "version": VERSION}
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def page(request: Request):
     return templates.TemplateResponse(request, "index.html", {"version": VERSION, "hadith": None})
 
