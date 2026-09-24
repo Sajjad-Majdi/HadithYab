@@ -1,1 +1,1 @@
-{"model": "embeddinggemma-300m", "dim": 768, "count": 38073, "embedded": 26400}
+{"model": "embeddinggemma-300m", "dim": 768, "count": 45381, "embedded": 26400, "books": {"hadith": 38073, "quran": 6236, "nahj": 1072}}

@@ -6,7 +6,7 @@ const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
 const fa = (n) => String(n).replace(/\d/g, (d) => FA_DIGITS[d]);
 const PAGE = 20;
 
-const state = { q: "", mode: "semantic", speaker: "all", limit: PAGE, speakers: [], labels: {} };
+const state = { q: "", mode: "semantic", speaker: "all", limit: PAGE, speakers: [], books: [], labels: {} };
 let researchSource = null;
 let searchToken = 0;
 
@@ -114,11 +114,19 @@ function renderHadith(h, opts = {}) {
   const node = els.tpl.content.firstElementChild.cloneNode(true);
   node.id = opts.nested ? "" : `h-${h.id}`;
   node.dataset.id = h.id;
-  $(".who", node).textContent = h.speaker_label || h.from || "";
+  $(".who", node).textContent = (h.speaker_label || h.from || "") + (h.kind === "nahj" ? " · نهج‌البلاغه" : "");
+  node.classList.toggle("quran", h.kind === "quran");
   const num = $(".num", node);
   num.textContent = `#${fa(h.id)}`;
   num.href = `/h/${h.id}`;
-  $(".src", node).textContent = h.source ? `منبع: ${h.source}` : "";
+  const src = $(".src", node);
+  src.textContent = h.source ? `منبع: ${h.source}` : "";
+  if (h.kind === "quran") {
+    // Tanzil's licence asks for its name and a link wherever its text is shown.
+    const a = Object.assign(document.createElement("a"), { href: "https://tanzil.net", textContent: "متن: تنزیل", rel: "noopener", target: "_blank" });
+    a.className = "credit";
+    src.append(" · ", a);
+  }
   const ar = $(".ar", node), faEl = $(".fa", node);
   ar.textContent = h.ar || "";
   faEl.textContent = h.fa || "";
@@ -169,7 +177,7 @@ async function act(kind, h, node, btn) {
     let list, head;
     if (kind === "similar") {
       list = (await getJSON(`/api/similar/${h.id}?limit=6`)).results;
-      head = "احادیث هم‌معنا";
+      head = h.kind === "quran" ? "آیه‌ها و احادیث هم‌معنا" : "احادیث هم‌معنا";
     } else {
       list = await Promise.all(h.variants.map((id) => getJSON(`/api/hadith/${id}`)));
       head = "نقل‌های دیگر همین حدیث";
@@ -206,17 +214,22 @@ function option(key, label, count, wide) {
 
 function renderSpeakers() {
   const list = state.speakers.filter((sp) => sp.count);
-  if (!list.some((sp) => sp.key === state.speaker)) state.speaker = "all";
+  if (![...list, ...state.books].some((sp) => sp.key === state.speaker)) state.speaker = "all";
   const total = list.reduce((a, sp) => a + sp.count, 0);
   const grid = document.createElement("div");
   grid.className = "grid";
   grid.append(option("all", "همه معصومین", total, true));
+  const books = state.books.filter((b) => b.count && b.key !== "hadith");
+  if (books.length) {
+    grid.append(Object.assign(document.createElement("div"), { className: "group", textContent: "کتاب" }));
+    books.forEach((b) => grid.append(option(b.key, b.label, b.count)));
+  }
   grid.append(Object.assign(document.createElement("div"), { className: "group", textContent: "چهارده معصوم" }));
   list.filter((sp) => sp.key !== "other").forEach((sp) => grid.append(option(sp.key, sp.label, sp.count)));
   const other = list.find((sp) => sp.key === "other");
   if (other) grid.append(option("other", "دیگر گویندگان", other.count, true));
   MENU.replaceChildren(grid);
-  const current = list.find((sp) => sp.key === state.speaker);
+  const current = [...list, ...state.books].find((sp) => sp.key === state.speaker);
   SPEAKER_LABEL.textContent = current ? current.label : "همه معصومین";
   SPEAKER_BTN.classList.toggle("on", state.speaker !== "all");
 }
@@ -616,6 +629,7 @@ window.addEventListener("popstate", () => { readUrl(); renderSpeakers(); run(); 
   try {
     const meta = await getJSON("/api/meta");
     state.speakers = meta.speakers;
+    state.books = meta.books || [];
     state.labels = Object.fromEntries(meta.speakers.map((x) => [x.key, x.label]));
     renderSpeakers();
   } catch (e) { /* chips are optional */ }

@@ -13,17 +13,18 @@ import requests
 
 from ..core.embed import GEMINI_BASE as BASE, next_key
 from ..core.index import get_index
-from ..core.text import SPEAKER_LABELS, SPEAKERS, detect_speaker
+from ..core.text import BOOKS, SPEAKER_LABELS, SPEAKERS, detect_speaker
 
 MODELS = [m.strip() for m in os.environ.get(
     "AGENT_MODELS", "gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-flash-latest").split(",") if m.strip()]
 MAX_ROUNDS = 3
 SEED_HITS = 8
 
-SPEAKER_ENUM = ["all"] + [k for k, _, _ in SPEAKERS] + ["other"]
-SPEAKER_HELP = "، ".join(f"{k}={SPEAKER_LABELS[k]}" for k in SPEAKER_ENUM[1:])
+SPEAKER_ENUM = ["all"] + [k for k, _, _ in SPEAKERS] + ["other"] + list(BOOKS)
+SPEAKER_HELP = "، ".join(f"{k}={SPEAKER_LABELS.get(k) or BOOKS[k]}" for k in SPEAKER_ENUM[1:])
 
-SYSTEM = f"""تو دستیار پژوهشی «حدیث‌یاب» هستی و به طلبه‌ها و پژوهشگران کمک می‌کنی. پایگاه تو حدود ۳۸ هزار حدیث شیعه با متن عربی و ترجمه فارسی است.
+SYSTEM = f"""تو دستیار پژوهشی «حدیث‌یاب» هستی و به طلبه‌ها و پژوهشگران کمک می‌کنی. پایگاه تو حدود ۳۸ هزار حدیث شیعه، همه آیه‌های قرآن و متن کامل نهج‌البلاغه است، هر کدام با متن عربی و ترجمه فارسی.
+اگر پرسش به قرآن مربوط است، با speaker=quran در آیه‌ها بگرد و اگر به نهج‌البلاغه، با speaker=nahj. آیه‌ها را هم مثل احادیث با [#شماره] مستند کن.
 
 قانون‌ها:
 ۱. فقط بر پایه احادیثی جواب بده که ابزارها برگردانده‌اند. هرگز حدیث، منبع یا شماره‌ای از حافظه نساز.
@@ -42,7 +43,7 @@ SYSTEM = f"""تو دستیار پژوهشی «حدیث‌یاب» هستی و ب
 گوینده‌ها: {SPEAKER_HELP}"""
 
 _SPEAKER_PARAM = {"type": "string", "enum": SPEAKER_ENUM,
-                  "description": "محدود کردن به یک معصوم. all یعنی همه. " + SPEAKER_HELP}
+                  "description": "محدود کردن به یک معصوم یا یک کتاب (quran، nahj، hadith). all یعنی همه. " + SPEAKER_HELP}
 
 TOOLS = [{"functionDeclarations": [
     {
@@ -97,8 +98,8 @@ TOOLS = [{"functionDeclarations": [
 
 
 def _brief(card, fa_len=700, ar_len=350):
-    return {"id": card["id"], "speaker": card["speaker_label"], "source": card["source"],
-            "fa": card["fa"][:fa_len], "ar": card["ar"][:ar_len]}
+    return {"id": card["id"], "book": BOOKS.get(card.get("kind", "hadith")), "speaker": card["speaker_label"],
+            "source": card["source"], "fa": card["fa"][:fa_len], "ar": card["ar"][:ar_len]}
 
 
 def _limit(args, default, top):

@@ -239,10 +239,14 @@ main { flex: 1; }
 .num { color: var(--ink-3); text-decoration: none; font-variant-numeric: tabular-nums; }
 .num:hover { color: var(--lapis); text-decoration: underline; }
 .src { margin-inline-start: auto; }
+.src .credit { color: var(--ink-3); text-decoration: none; }
+.src .credit:hover { color: var(--lapis); text-decoration: underline; }
 .ar {
   margin: 10px 0 8px; font-family: var(--ar); font-size: 1.55rem; line-height: 2.05; color: var(--ink);
   padding-bottom: 10px; border-bottom: 1px solid var(--line);
 }
+.quran .ar { font-size: 1.7rem; line-height: 2.2; }
+.quran .who { color: var(--lapis); }
 .fa { margin: 0; color: var(--ink-2); font-size: 1.02rem; line-height: 2; text-align: justify; }
 .hadith mark { background: var(--hit); color: inherit; }
 .clamp .ar, .clamp .fa { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
