@@ -5,8 +5,12 @@ const $ = (sel, el = document) => el.querySelector(sel);
 const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
 const fa = (n) => String(n).replace(/\d/g, (d) => FA_DIGITS[d]);
 const PAGE = 20;
+// A first visit asks the smart agent, in the Quran. The Quran default is soft:
+// a query that names a speaker ("احادیث امام علی ...") searches that speaker.
+const DEFAULT_MODE = "research", DEFAULT_SCOPE = "quran";
 
-const state = { q: "", mode: "semantic", speaker: "all", limit: PAGE, speakers: [], books: [], labels: {} };
+const state = { q: "", mode: DEFAULT_MODE, speaker: DEFAULT_SCOPE, limit: PAGE, speakers: [], books: [], labels: {} };
+const softScope = () => state.speaker === DEFAULT_SCOPE && !state.scopeChosen;
 let researchSource = null;
 let searchToken = 0;
 
@@ -239,6 +243,7 @@ function chooseSpeaker(key) {
   if (key === state.speaker) return;
   state.speaker = key;
   state.autoSpeaker = false;
+  state.scopeChosen = true;
   state.limit = PAGE;
   renderSpeakers();
   if (state.q) run(true);
@@ -278,8 +283,8 @@ MENU.addEventListener("keydown", (e) => {
 function syncUrl(push) {
   const p = new URLSearchParams();
   if (state.q) p.set("q", state.q);
-  if (state.mode !== "semantic") p.set("m", state.mode);
-  if (state.speaker !== "all") p.set("s", state.speaker);
+  if (state.mode !== DEFAULT_MODE) p.set("m", state.mode);
+  if (state.speaker !== DEFAULT_SCOPE || state.scopeChosen) p.set("s", state.speaker);
   const url = p.toString() ? `/?${p}` : "/";
   if (url !== location.pathname + location.search) history[push ? "pushState" : "replaceState"](null, "", url);
 }
@@ -294,8 +299,9 @@ function setPlaceholder() { els.q.placeholder = PLACEHOLDER[state.mode]; }
 function readUrl() {
   const p = new URLSearchParams(location.search);
   state.q = p.get("q") || "";
-  state.mode = ["semantic", "keyword", "research"].includes(p.get("m")) ? p.get("m") : "semantic";
-  state.speaker = p.get("s") || "all";
+  state.mode = ["semantic", "keyword", "research"].includes(p.get("m")) ? p.get("m") : DEFAULT_MODE;
+  state.speaker = p.get("s") || DEFAULT_SCOPE;
+  state.scopeChosen = p.has("s");
   els.q.value = state.q;
   els.form.querySelector(`input[name=mode][value=${state.mode}]`).checked = true;
   setPlaceholder();
@@ -336,10 +342,11 @@ async function run(push = false, append = false) {
   els.more.hidden = true;
   const p = new URLSearchParams({ q: state.q, mode: state.mode, limit: fetchLimit });
   if (state.speaker !== "all") p.set("speaker", state.speaker);
+  if (softScope()) p.set("soft", "1");
   try {
     const data = await getJSON(`/api/search?${p}`);
     if (token !== searchToken) return;
-    if (data.speaker && state.speaker === "all") {
+    if (data.speaker && (state.speaker === "all" || softScope())) {
       state.speaker = data.speaker;
       state.autoSpeaker = true;  // named in the query; the next query starts from "all" again
       renderSpeakers();
@@ -468,7 +475,7 @@ function runResearch() {
   const kinds = {};
   const head = Object.assign(document.createElement("h2"), { className: "cited-head", textContent: "احادیثی که بررسی شد" });
 
-  const key = `${state.q.split(/\s+/).join(" ")}|${state.speaker}`;
+  const key = `${state.q.split(/\s+/).join(" ")}|${state.speaker}|${softScope() ? "soft" : ""}`;
   const log = [];
   const t0 = performance.now();
   let src = null;
@@ -536,6 +543,7 @@ function runResearch() {
   }
   const p = new URLSearchParams({ q: state.q });
   if (state.speaker !== "all") p.set("speaker", state.speaker);
+  if (softScope()) p.set("soft", "1");
   src = new EventSource(`/api/research?${p}`);
   researchSource = src;
   src.onmessage = (e) => handle(JSON.parse(e.data), false);
@@ -584,7 +592,7 @@ els.form.addEventListener("submit", (e) => {
   e.preventDefault();
   state.q = els.q.value.trim();
   state.mode = els.form.querySelector("input[name=mode]:checked").value;
-  if (state.autoSpeaker) { state.speaker = "all"; state.autoSpeaker = false; renderSpeakers(); }
+  if (state.autoSpeaker) { state.speaker = DEFAULT_SCOPE; state.autoSpeaker = false; renderSpeakers(); }
   state.limit = PAGE;
   run(true);
 });
