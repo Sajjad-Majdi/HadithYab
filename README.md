@@ -1,120 +1,85 @@
-# حدیث‌یاب هوشمند
+# حدیث‌یاب
 
-یک برنامه جستجوی معنایی که به کاربران امکان می‌دهد با وارد کردن جملات طبیعی، احادیث مرتبط را پیدا کنند. این برنامه از embedding سرویس Jina AI برای بازیابی نتایج معنایی مشابه از یک پایگاه داده برداری سرویس بک اند آماده Supabase استفاده می‌کند.
+جستجوی معنایی در حدود ۳۸ هزار حدیث شیعه، با متن عربی، ترجمه فارسی و منبع. کافی است به فارسی یا عربی بنویسید دنبال چه هستید؛ لازم نیست واژه‌های خود حدیث را بدانید.
 
-## دموی زنده
+نسخه زنده: [hadithyab.onrender.com](https://hadithyab.onrender.com/)
 
-می‌توانید برنامه را به صورت زنده در آدرس زیر امتحان کنید:  
-[https://hadithyab.com](https://hadithyab.onrender.com/)
+## امکانات
 
-## نمای کلی فنی
+- **جستجوی معنایی** با مدل EmbeddingGemma روی Cloudflare Workers AI؛ ۳۰ نتیجه اول بلافاصله نشان داده می‌شود و سپس Gemini Flash Lite با خواندن متن‌ها ترتیبشان را دقیق‌تر می‌کند
+- **جستجوی واژه دقیق** در متن عربی و فارسی، بی‌توجه به حرکات، همزه و شکل ی/ک؛ عبارت داخل `"…"` عیناً جستجو می‌شود
+- **جستجوی هوشواره‌ای**: یک عامل Gemini Flash Lite با ابزارهای جستجوی معنایی، BM25، عبارت دقیق و احادیث مشابه چند بار می‌گردد و پاسخی مستند با شماره احادیث `[#شماره]` می‌نویسد؛ هر جستجویش در صفحه دیده می‌شود
+- **فیلتر گوینده** (چهارده معصوم)؛ اگر نام معصوم در پرسش بیاید، مثل «احادیث امام علی درباره مرگ»، خودکار اعمال می‌شود
+- **احادیث مشابه** و **نقل‌های دیگر** همان حدیث، زیر هر نتیجه
+- **حمایت**: کارت‌به‌کارت با دکمه کپی شماره کارت
+- کپی متن با منبع، پیوند مستقیم به هر حدیث (`/h/<شماره>`)، حالت روشن و تاریک
 
-- **Frontend:** HTML, CSS, JS (از طریق قالب‌های Jinja2)
-- **Backend:** Python Flask
-- **مدل Embedding:** [`jinaai/jina-embeddings-v3`](https://huggingface.co/jinaai/jina-embeddings-v3)
-- **مجموعه داده:** [`IslamShia/shia-hadith`](https://github.com/IslamShia/shia-hadith)
-- **ذخیره‌ساز برداری:** Supabase + کتابخانه `vecs`
-
-## ویژگی‌ها
-
-- رابط جستجوی تحت وب ساخته شده با Flask و Jinja2
-- تولید embedding از طریق Jina AI یا Hugging Face Inference API
-- جستجوی شباهت با استفاده از کتابخانه `vecs` و ذخیره‌ساز برداری Supabase
-- بازگرداندن متن عربی، ترجمه فارسی، منبع و اطلاعات راوی
-
-## مدل Embedding
-
-این برنامه از مدل `jina-embeddings-v3` برای تولید نمایش‌های برداری معنایی از احادیث استفاده می‌کند. این embeddings از ترجمه‌های فارسی احادیث برای پایگاه داده برداری تولید می‌شوند.
-
-شما می‌توانید از مدل به دو روش استفاده کنید:
-
-- **Jina AI Embeddings:** دسترسی به سرویس embedding Jina AI (پیش‌فرض: `jina-embeddings-v3`) برای embeddings با کیفیت بالا و ۱۰۲۴ بعدی از طریق API.
-- **Hugging Face Embeddings:** استفاده از مدل از طریق Hugging Face Inference API با کلید API خودتان. اگر استنتاج در صفحه رسمی Jina AI غیرفعال باشد، می‌توانید از مدل سازگار میزبانی شده در [Sajjad313/my-Jira-embedding-v3](https://huggingface.co/Sajjad313/my-Jira-embedding-v3) استفاده کنید.
-
-## پیش‌نیازها
-
-- Python 3.8 یا جدیدتر
-- یک محیط مجازی (توصیه می‌شود)
-- یک حساب Supabase با یک ذخیره‌ساز برداری راه‌اندازی شده
-- یک فایل `.env` (اختیاری) برای ذخیره متغیرهای محیطی به صورت محلی
-- متغیرهای محیطی:
-  - `CONNECTION_STRING`: URI اتصال برای ذخیره‌ساز برداری Supabase شما (استفاده شده توسط جستجو)
-  - `JINA_API_KEY`: کلید API برای سرویس embedding Jina AI
-  - `HF_API_KEY`: کلید API برای Hugging Face Inference API
-  - `COLLECTION_NAME` و `NUM_RESULTS` (اختیاری) برای بازنویسی نام مجموعه جستجوی پیش‌فرض و تعداد نتایج
-
-## نصب
-
-1. مخزن را کلون کنید یا کد منبع را دانلود کنید:
-
-   ```bash
-   git clone <repository_url>
-   cd production
-   ```
-
-2. یک محیط مجازی ایجاد و فعال کنید:
-
-   ```bash
-   python -m venv venv
-   # در Windows:
-   venv\Scripts\activate
-   # در Unix یا macOS:
-   source venv/bin/activate
-   ```
-
-3. بسته‌های پایتون مورد نیاز را نصب کنید:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. متغیرهای محیطی را تنظیم کنید (با مقادیر خودتان جایگزین کنید):
-
-   ```bash
-   set CONNECTION_STRING="your_connection_string"
-   set JINA_API_KEY="your_jina_api_key"
-   set HF_API_KEY="your_hf_api_key"
-   ```
-
-   در Unix/macOS، به جای `set` از `export` استفاده کنید.
-
-## استفاده
-
-1. سرور Flask را اجرا کنید:
-
-   app.run() را در انتهای فایل `flask_server.py` از حالت کامنت خارج کنید
-
-   سپس این دستور را در ترمینال اجرا کنید:
-
-   ```bash
-   python flask_server.py
-   ```
-
-2. مرورگر خود را باز کنید و به `http://127.0.0.1:5000` بروید.
-3. یک جستجو در کادر ورودی وارد کنید و ارسال کنید تا احادیث مشابه برتر را ببینید.
-
-## ساختار پروژه
+## ساختار
 
 ```
-.
-├── config.py              # پیکربندی برنامه و بارگذاری متغیرهای محیطی
-├── flask_server.py        # نقطه ورودی برنامه Flask
-├── madules.py             # ابزارهای embedding و جستجوی شباهت
-├── dev_maduels.py         # ابزارهای embedding و upsert دسته‌ای (استفاده توسعه‌دهنده)
-├── requirements.txt       # وابستگی‌های پایتون
-├── .env                   # بازنویسی‌های محلی متغیرهای محیطی (اختیاری)
-├── templates/
-│   └── index.html         # قالب Jinja2 برای رابط کاربری جستجو
-└── README.md              # نمای کلی پروژه و دستورالعمل‌ها
+hadithyab/                 برنامه (FastAPI)
+  main.py                  مسیرها: صفحه، API و جریان پژوهش
+  core/
+    text.py                پاک‌سازی متن، تشخیص گوینده
+    embed.py               ساخت بردار پرسش (Workers AI یا Gemini)
+    index.py               فهرست درون حافظه: معنایی، واژه‌ای، مشابه
+    lexical.py             BM25 روی واژه‌های فارسی و عربی
+  research/
+    agent.py               عامل جستجوی هوشواره‌ای و ابزارهایش
+    rerank.py              مرتب‌سازی دوباره نتایج با مدل زبانی
+    llm.py                 زنجیره مدل‌های زبانی رایگان
+  web/
+    templates/index.html
+    static/{css,js,img}/
+  index/                   فهرست ساخته‌شده (بردارها و احادیث)
+scripts/
+  corpus.py                خواندن و پاک‌سازی داده خام
+  build_index.py           بردارسازی کل احادیث و نوشتن فهرست
+  dev.py                   اجرای محلی
+  eval/                    آزمون دقت مدل‌ها و روش‌ها
+data/                      داده خام و فایل‌های کاری (در git نیست)
 ```
 
-## استقرار در محیط تولید
+## داده
 
-این برنامه آماده استقرار در محیط تولید پشت یک سرور WSGI مانند **Waitress** یا **Gunicorn** است.
+[IslamShia/shia-hadith](https://github.com/IslamShia/shia-hadith). نسخه خام ۳۹٬۰۳۲ رکورد دارد؛ پس از حذف تکراری‌ها ۳۸٬۰۷۳ حدیث می‌ماند.
 
-- در Windows، از Waitress استفاده کنید (از طریق requirements.txt نصب شده):
+## انتخاب مدل
 
-  ```powershell
-  waitress-serve --listen=0.0.0.0:5000 flask_server:app
-  ```
+هشتاد پرسش واقعی روی ۳۰۰۰ حدیث (`scripts/eval/bench.py`). معیار: درصد پرسش‌هایی که حدیث درست جزو ۱۰ نتیجه اول آمد.
 
+| مدل | ۱۰ نتیجه اول | MRR |
+|---|---|---|
+| gemini-embedding-2 | ۱۰۰٪ | ۰٫۹۲ |
+| EmbeddingGemma 300M (Workers AI) | ۸۵٪ | ۰٫۶۳ |
+| jina-embeddings-v5-text-nano | ۸۱٪ | ۰٫۴۹ |
+| Qwen3-Embedding 0.6B (Workers AI) | ۶۵٪ | ۰٫۴۸ |
+
+رتبه‌بندی دوباره ۲۰ نتیجه اول EmbeddingGemma با Gemini Flash Lite، MRR را از ۰٫۶۳ به ۰٫۸۵ می‌رساند و حدیث درست در ۸۰٪ پرسش‌ها نتیجه اول می‌شود (`scripts/eval/boost.py`). ترکیب با BM25 و HyDE کمکی نکرد.
+
+Gemini embedding بهترین است، ولی سهمیه رایگانش روزی حدود هزار متن برای هر پروژه گوگل است و برای ۳۸ هزار حدیث کافی نیست. با یک کلید پولی می‌شود با `EMBED_MODEL=gemini-embedding-2` به آن برگشت.
+
+## اجرای محلی
+
+```bash
+python -m venv .venv
+.venv/Scripts/pip install -r requirements.txt
+python scripts/build_index.py
+python scripts/dev.py
+```
+
+`dev.py` از ورود wrangler روی همین سیستم برای Workers AI استفاده می‌کند. مقدارهای محلی در `.env` (بیرون از git) می‌آیند: `CF_ACCOUNT_ID` و، اگر گوگل در دسترس نیست، `GEMINI_BASE` برای رله.
+
+## استقرار روی Render
+
+`render.yaml` سرویس را تعریف می‌کند. متغیرهای لازم:
+
+| متغیر | کاربرد |
+|---|---|
+| `CF_ACCOUNT_ID`، `CF_API_TOKEN` | بردار پرسش از Workers AI (توکن با دسترسی Workers AI) |
+| `GEMINI_API_KEYS` | کلیدهای Gemini با ویرگول جدا، برای حالت پژوهش |
+| `EMBED_MODEL` | پیش‌فرض `embeddinggemma-300m` |
+
+---
+
+هزینه استفاده: یک صلوات

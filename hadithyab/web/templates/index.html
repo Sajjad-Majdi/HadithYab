@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if hadith %}
+  <title>{{ hadith.speaker_label or "حدیث" }}: {{ hadith.fa[:60] }}… | حدیث‌یاب</title>
+  <meta name="description" content="{{ hadith.fa[:180] }}">
+  <meta property="og:title" content="{{ hadith.speaker_label or 'حدیث' }} | حدیث‌یاب">
+  <meta property="og:description" content="{{ hadith.fa[:200] }}">
+  {% else %}
+  <title>حدیث‌یاب | جستجوی معنایی احادیث</title>
+  <meta name="description" content="جستجوی معنایی در حدود ۳۸ هزار حدیث شیعه، با متن عربی، ترجمه فارسی و منبع.">
+  <meta property="og:title" content="حدیث‌یاب">
+  <meta property="og:description" content="حدیث را با معنایش پیدا کن، نه فقط با واژه‌هایش.">
+  {% endif %}
+  <meta name="theme-color" content="#EAF0F1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#172030" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="/static/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&family=Vazirmatn:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/static/css/app.css?v={{ version }}">
+  <script>
+    try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body class="{{ 'reading' if hadith else 'home' }}">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="spark-ink" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#3b82f6"/><stop offset=".35" stop-color="#8b5cf6"/>
+        <stop offset=".65" stop-color="#ec4899"/><stop offset="1" stop-color="#f59e0b"/>
+      </linearGradient>
+      <symbol id="spark" viewBox="0 0 24 24">
+        <path fill="url(#spark-ink)" d="M10 2.5c.5 4.4 2.6 6.6 7 7.1-4.4.5-6.5 2.7-7 7.1-.5-4.4-2.6-6.6-7-7.1 4.4-.5 6.5-2.7 7-7.1Z"/>
+        <path fill="url(#spark-ink)" d="M18.5 13.5c.3 2.3 1.4 3.4 3.7 3.7-2.3.3-3.4 1.4-3.7 3.7-.3-2.3-1.4-3.4-3.7-3.7 2.3-.3 3.4-1.4 3.7-3.7Z"/>
+      </symbol>
+    </defs>
+  </svg>
+  <header class="bar">
+    <div class="wrap bar-row">
+      <a class="brand" id="brand" href="/" aria-label="حدیث‌یاب، صفحه اصلی">
+        <img src="/static/img/logo.svg" alt="" width="34" height="34">
+        <span>حدیث‌یاب</span>
+      </a>
+      <div class="bar-acts">
+      <button class="give" type="button" popovertarget="donate" aria-label="حمایت از حدیث‌یاب">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z"/></svg>
+        <span>حمایت</span>
+      </button>
+      <button class="icon-btn" id="theme" type="button" aria-label="تغییر حالت روشن و تاریک">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" id="hero">
+      <img src="/static/img/logo.svg" alt="" width="64" height="64">
+      <h1>حدیث‌یاب</h1>
+      <p>جستجو با معنا، نه با کلمه. موضوع رو به زبان خودت بنویس؛ لازم نیست متن حدیث رو بدونی.</p>
+    </section>
+
+    <form class="search" id="search" role="search" autocomplete="off">
+      <div class="field">
+        <input id="q" name="q" type="search" maxlength="400" required
+               placeholder="مثلاً: پاداش صبر در برابر مصیبت" aria-label="عبارت جستجو" enterkeyhint="search">
+        <button class="clear" id="clear" type="button" aria-label="پاک کردن" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <button class="go" type="submit" aria-label="جستجو">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        </button>
+      </div>
+      <div class="opts">
+        <div class="modes" role="radiogroup" aria-label="نوع جستجو">
+          <label><input type="radio" name="mode" value="semantic" checked><span>معنایی</span></label>
+          <label><input type="radio" name="mode" value="keyword"><span>واژه دقیق</span></label>
+          <label class="ai"><input type="radio" name="mode" value="research"><span><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><use href="#spark"/></svg>هوشواره‌ای</span></label>
+        </div>
+        <div class="who-pick">
+          <button type="button" id="speaker" popovertarget="speaker-menu" aria-haspopup="listbox" aria-label="گوینده">
+            <svg class="who-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg>
+            <span id="speaker-label">همه معصومین</span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="speaker-menu" class="who-menu" popover role="listbox" aria-label="گوینده"></div>
+        </div>
+      </div>
+    </form>
+
+    <section id="answer" class="answer" hidden aria-live="polite">
+      <details class="trace" id="trace" open>
+        <summary><svg class="spark" viewBox="0 0 24 24" aria-hidden="true"><use href="#spark"/></svg><span id="trace-title">در حال جستجو…</span>
+          <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <ol class="steps" id="steps"></ol>
+      </details>
+      <div class="answer-text" id="answer-text"></div>
+    </section>
+
+    <p class="status" id="status" role="status"></p>
+    <section class="results" id="results" aria-label="نتایج"></section>
+    <div class="more-row"><button type="button" class="more" id="more" hidden>نتایج بیشتر</button></div>
+  </main>
+
+  <footer class="foot wrap">
+    <span>هزینه استفاده: یک صلوات</span>
+  </footer>
+
+  <div id="donate" class="donate" popover>
+    <svg class="donate-heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z"/></svg>
+    <h2>در ثواب این کار شریک شوید</h2>
+    <p>حدیث‌یاب رایگان است و رایگان می‌ماند. هزینه سرور و مدل‌های هوش مصنوعی را تیم کوچک ما می‌دهد. اگر حدیثی که دنبالش بودید را این‌جا پیدا کردید، با هر مبلغی کمک کنید تا این چراغ روشن بماند و امکانات تازه ساخته شود.</p>
+    <div class="card-no">
+      <span class="digits" dir="ltr">6219 8619 6757 6876</span>
+      <button type="button" id="copy-card">کپی شماره کارت</button>
+    </div>
+    <p class="owner">به نام سجاد مجدی</p>
+    <button type="button" class="donate-close" popovertarget="donate" popovertargetaction="hide" aria-label="بستن">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <template id="hadith-tpl">
+    <article class="hadith">
+      <div class="meta">
+        <span class="who"></span>
+        <a class="num" title="پیوند این حدیث"></a>
+        <span class="src"></span>
+      </div>
+      <p class="ar" lang="ar" dir="rtl"></p>
+      <p class="fa"></p>
+      <div class="acts">
+        <button type="button" data-act="copy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>کپی</span>
+        </button>
+        <button type="button" data-act="share">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>پیوند</span>
+        </button>
+        <button type="button" data-act="similar" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/></svg><span>مشابه</span>
+        </button>
+        <button type="button" data-act="variants" aria-expanded="false" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span></span>
+        </button>
+      </div>
+      <div class="nested" hidden></div>
+    </article>
+  </template>
+
+  {% if hadith %}<script id="initial-hadith" type="application/json">{{ hadith | tojson }}</script>{% endif %}
+  <script src="/static/js/app.js?v={{ version }}" defer></script>
+</body>
+</html>
