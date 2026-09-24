@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="حدیث‌یاب">
+  <circle cx="32" cy="32" r="31" fill="#1E3F8A"/>
+  <g fill="none" stroke="#E7C271" stroke-width="2.6" stroke-linejoin="round">
+    <rect x="17" y="17" width="30" height="30"/>
+    <rect x="17" y="17" width="30" height="30" transform="rotate(45 32 32)"/>
+  </g>
+  <circle cx="32" cy="32" r="6.5" fill="none" stroke="#EEF2FA" stroke-width="2.6"/>
+  <path d="M36.6 36.6 L41 41" stroke="#EEF2FA" stroke-width="2.8" stroke-linecap="round"/>
+</svg>
