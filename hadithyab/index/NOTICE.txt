@@ -1,0 +1,10 @@
+Quran text: Tanzil Quran Text (Simple, Version 1.1), Copyright (C) 2007-2026
+Tanzil Project, Creative Commons Attribution 3.0, https://tanzil.net
+Permission is granted to copy and distribute verbatim copies of this text, but
+changing it is not allowed. Persian translation: Naser Makarem Shirazi, via
+tanzil.net, for non-commercial use.
+
+Nahj al-Balagha: Arabic text with the Persian translation of Mohammad Dashti,
+from https://github.com/WWGTX/NahjulBalaghah.
+
+Hadith: https://github.com/IslamShia/shia-hadith

@@ -14,7 +14,7 @@ import numpy as np
 
 from .embed import EMBED_MODEL, embed_query
 from .lexical import BM25
-from .text import SPEAKER_LABELS, fold
+from .text import BOOKS, SPEAKER_LABELS, fold
 
 INDEX_DIR = os.environ.get("HADITHYAB_INDEX") or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "index")
 DUPLICATE = 0.965  # cosine above which two hits are the same hadith, retold
@@ -31,6 +31,7 @@ class Index:
         self.vectors = np.load(os.path.join(directory, "vectors.npy")).astype(np.float32)
         self.bm25 = BM25(directory)
         self.speakers = np.array([d["speaker"] for d in self.docs])
+        self.kinds = np.array([d.get("kind", "hadith") for d in self.docs])
         # Bare text for keyword search, Persian and Arabic side by side.
         self.folded = [f" {fold(d['fa'])} | {fold(d['ar'])} " for d in self.docs]
         self.joined = "\n".join(self.folded)
@@ -39,16 +40,20 @@ class Index:
             self.starts.append(at)
             at += len(text) + 1
         self.counts = {k: int((self.speakers == k).sum()) for k in SPEAKER_LABELS}
+        self.book_counts = {k: int((self.kinds == k).sum()) for k in BOOKS}
 
     def __len__(self):
         return len(self.docs)
 
     # ---- ranking -----------------------------------------------------------
 
-    def _mask(self, speaker):
-        if not speaker or speaker == "all":
+    def _mask(self, scope):
+        """scope is a speaker key, a book key (quran, nahj, hadith) or all."""
+        if not scope or scope == "all":
             return None
-        return self.speakers == speaker
+        if scope in BOOKS:
+            return self.kinds == scope
+        return self.speakers == scope
 
     def _rank(self, scores, speaker, limit, exclude=None):
         mask = self._mask(speaker)
@@ -139,6 +144,7 @@ class Index:
             "from": d["from"],
             "speaker": d["speaker"],
             "speaker_label": SPEAKER_LABELS.get(d["speaker"], ""),
+            "kind": d.get("kind", "hadith"),
             "score": None if score is None else round(score, 4),
             "variants": [int(v) for v in variants],
         }

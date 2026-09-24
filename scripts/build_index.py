@@ -84,15 +84,27 @@ def gemini_batch(slots, texts):
 
 # ---- Workers AI ---------------------------------------------------------------
 
+_spent = threading.Event()  # set once Workers AI says today's allowance is gone
+
+
 def cloudflare_batch(texts):
-    from scripts.cf_ai import ACCOUNT, token
+    from scripts.cf_ai import ACCOUNT, refresh_login, token
     model, _dim, _query_body, doc_body = embed.CF_MODELS[embed.EMBED_MODEL]
     for attempt in range(12):
+        if _spent.is_set():
+            return None
         try:
             a = np.asarray(embed.cf_run(model, doc_body(texts), token=token(), account=ACCOUNT, timeout=180),
                            dtype=np.float32)
             return a / np.linalg.norm(a, axis=1, keepdims=True)
-        except Exception:
+        except Exception as e:
+            if "daily free allocation" in str(e):
+                if not _spent.is_set():
+                    print("Workers AI daily allowance used up; the rest waits for tomorrow", flush=True)
+                _spent.set()
+                return None
+            if "401" in str(e):
+                refresh_login()
             time.sleep(min(60, 3 * (attempt + 1)))
     return None
 
@@ -105,18 +117,57 @@ def write_docs(docs):
     lexical.build([embed.doc_text(d) for d in docs], OUT)
 
 
-def main():
-    docs = load_corpus()
-    if "--docs-only" in sys.argv:
-        write_docs(docs)
-        print("docs and keyword index written", flush=True)
-        return 0
-    work = os.path.join(ROOT, "data", "build", embed.EMBED_MODEL)
+def collections():
+    """Every book in index order. Hadith ids come first and never move, so old
+    permalinks (/h/<id>) keep pointing at the same hadith."""
+    from scripts.books import fetch, load_nahj, load_quran
+    fetch()
+    return [("hadith", load_corpus()), ("quran", load_quran()), ("nahj", load_nahj())]
+
+
+def embed_collection(name, docs, worker):
+    """Embed what is not on disk yet; return the vectors, zeros where missing."""
+    work = os.path.join(ROOT, "data", "build", embed.EMBED_MODEL + ("" if name == "hadith" else f"-{name}"))
     os.makedirs(work, exist_ok=True)
     n_batches = (len(docs) + BATCH - 1) // BATCH
     todo = [(n, [embed.doc_text(d) for d in docs[n * BATCH:(n + 1) * BATCH]])
             for n in range(n_batches) if not os.path.exists(os.path.join(work, f"{n:05d}.npy"))]
-    print(f"{len(docs)} hadiths with {embed.EMBED_MODEL}; {len(todo)} of {n_batches} batches to go", flush=True)
+    print(f"{name}: {len(docs)} texts, {len(todo)} of {n_batches} batches to go", flush=True)
+    done = 0
+    if todo:
+        with ThreadPoolExecutor(6) as pool:
+            jobs = {pool.submit(worker, texts): n for n, texts in todo}
+            for job in as_completed(jobs):
+                vecs = job.result()
+                if vecs is None:
+                    continue
+                np.save(os.path.join(work, f"{jobs[job]:05d}.npy"), vecs.astype(np.float16))
+                done += 1
+                if done % 50 == 0:
+                    print(f"  {done}/{len(todo)}", flush=True)
+    full = np.zeros((len(docs), embed.DIM), dtype=np.float16)
+    have = 0
+    for n in range(n_batches):
+        path = os.path.join(work, f"{n:05d}.npy")
+        if os.path.exists(path):
+            part = np.load(path)
+            full[n * BATCH:n * BATCH + len(part)] = part
+            have += len(part)
+    print(f"  {name}: {have}/{len(docs)} embedded", flush=True)
+    return full, have
+
+
+def main():
+    books = collections()
+    docs = []
+    for _name, part in books:
+        for d in part:
+            d["id"] = len(docs)
+            docs.append(d)
+    if "--docs-only" in sys.argv:
+        write_docs(docs)
+        print("docs and keyword index written", flush=True)
+        return 0
 
     if GEMINI:
         from scripts.gemini_keys import valid_keys
@@ -125,32 +176,36 @@ def main():
     else:
         worker = cloudflare_batch
 
-    done = missed = 0
-    with ThreadPoolExecutor(6) as pool:
-        jobs = {pool.submit(worker, texts): n for n, texts in todo}
-        for job in as_completed(jobs):
-            vecs = job.result()
-            if vecs is None:
-                missed += 1
-                continue
-            np.save(os.path.join(work, f"{jobs[job]:05d}.npy"), vecs.astype(np.float16))
-            done += 1
-            if done % 50 == 0:
-                print(f"{done}/{len(todo)}", flush=True)
-    left = len(todo) - done
-    print(f"embedded {done} batches today; {left} left", flush=True)
-    if left:
-        return 1
-
-    full = np.concatenate([np.load(os.path.join(work, f"{n:05d}.npy")) for n in range(n_batches)])
-    assert full.shape == (len(docs), embed.DIM), full.shape
+    # The index is written even when a daily quota cut the run short: missing
+    # vectors stay zero (those texts still show up in keyword and BM25 search)
+    # and the next run fills them in.
+    # Small books first, so a short quota still finishes whole books.
+    made = {name: embed_collection(name, part, worker) for name, part in sorted(books, key=lambda b: len(b[1]))}
+    vectors, have = zip(*(made[name] for name, _part in books))
+    full = np.concatenate(vectors)
     os.makedirs(OUT, exist_ok=True)
-    np.save(os.path.join(OUT, "vectors.npy"), full.astype(np.float16))
+    np.save(os.path.join(OUT, "vectors.npy"), full)
     write_docs(docs)
     with open(os.path.join(OUT, "meta.json"), "w", encoding="utf-8") as f:
-        json.dump({"model": embed.EMBED_MODEL, "dim": embed.DIM, "count": len(docs), "embedded": len(docs)}, f)
-    print("index written", full.shape, flush=True)
-    return 0
+        json.dump({"model": embed.EMBED_MODEL, "dim": embed.DIM, "count": len(docs), "embedded": sum(have),
+                   "books": {name: len(part) for name, part in books}}, f)
+    with open(os.path.join(OUT, "NOTICE.txt"), "w", encoding="utf-8") as f:
+        f.write(NOTICE)
+    print(f"index written: {sum(have)}/{len(docs)} embedded", flush=True)
+    return 0 if sum(have) == len(docs) else 1
+
+
+NOTICE = """Quran text: Tanzil Quran Text (Simple, Version 1.1), Copyright (C) 2007-2026
+Tanzil Project, Creative Commons Attribution 3.0, https://tanzil.net
+Permission is granted to copy and distribute verbatim copies of this text, but
+changing it is not allowed. Persian translation: Naser Makarem Shirazi, via
+tanzil.net, for non-commercial use.
+
+Nahj al-Balagha: Arabic text with the Persian translation of Mohammad Dashti,
+from https://github.com/WWGTX/NahjulBalaghah.
+
+Hadith: https://github.com/IslamShia/shia-hadith
+"""
 
 
 if __name__ == "__main__":

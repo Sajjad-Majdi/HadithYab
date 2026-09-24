@@ -4,7 +4,8 @@ import re
 _TATWEEL = "ـ"
 _ZW = re.compile("[​‎‏﻿]")
 _SPACES = re.compile(r"\s+")
-_HARAKAT = re.compile("[ً-ٰٟ]")
+# Harakat, the dagger alif, and the Quran's pause and recitation marks.
+_HARAKAT = re.compile("[\u064b-\u065f\u0670\u06d6-\u06ed]")
 # Letters only: Arabic-script punctuation (، ؛ ؟ « » ٪ ٫ ٬ ۔) sits inside
 # U+0600-U+06FF too, so it is cut out explicitly.
 _NON_WORD = re.compile(r"[^\w؀-ۿ]+|[،؛؟٪-٬۔«»]+")
@@ -34,6 +35,10 @@ SPEAKERS = [
 ]
 SPEAKER_LABELS = {key: label for key, label, _ in SPEAKERS}
 SPEAKER_LABELS["other"] = "دیگران"
+SPEAKER_LABELS["quran"] = "قرآن کریم"
+
+# Books sit beside the hadith collection; a filter value can name one of them.
+BOOKS = {"quran": "قرآن کریم", "nahj": "نهج‌البلاغه", "hadith": "سایر احادیث"}
 
 
 def clean(text, persian=False):

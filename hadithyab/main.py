@@ -20,7 +20,7 @@ from starlette.concurrency import run_in_threadpool
 
 from .core.index import get_index
 from .guard import Guard
-from .core.text import SPEAKER_LABELS, SPEAKERS, detect_speaker
+from .core.text import BOOKS, SPEAKER_LABELS, SPEAKERS, detect_speaker
 from .research.agent import research
 from .research.rerank import rerank
 
@@ -54,7 +54,7 @@ def _inline_script_hash():
 app.add_middleware(Guard, theme_hash=_inline_script_hash())
 
 Q = Query(..., min_length=1, max_length=400, description="عبارت جستجو")
-Speaker = Optional[Literal[tuple(SPEAKER_ORDER)]]
+Speaker = Optional[Literal[tuple(SPEAKER_ORDER + list(BOOKS))]]
 
 
 def _doc(doc_id):
@@ -94,7 +94,9 @@ def hadith_page(request: Request, doc_id: int):
 @app.get("/api/meta")
 def meta():
     index = get_index()
-    return {"total": len(index), "speakers": [
+    return {"total": len(index),
+            "books": [{"key": k, "label": v, "count": index.book_counts.get(k, 0)} for k, v in BOOKS.items()],
+            "speakers": [
         {"key": k, "label": SPEAKER_LABELS[k], "count": index.counts.get(k, 0)} for k in SPEAKER_ORDER]}
 
 
