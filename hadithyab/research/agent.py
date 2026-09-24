@@ -237,7 +237,12 @@ def research(question, speaker=None, seed_query=None):
         seed = index.lexical(seed_query, speaker, SEED_HITS)
     yield {"type": "step_done", "id": 0, "count": len(seed), "ids": [c["id"] for c in seed]}
     yield {"type": "cards", "cards": seed}
-    note = f" (فقط احادیث {SPEAKER_LABELS[speaker]})" if speaker and speaker in SPEAKER_LABELS else ""
+    if speaker in BOOKS:
+        note = f" (فقط در {BOOKS[speaker]} بگرد؛ در هر جستجو speaker={speaker} بده)"
+    elif speaker in SPEAKER_LABELS:
+        note = f" (فقط احادیث {SPEAKER_LABELS[speaker]}؛ در هر جستجو speaker={speaker} بده)"
+    else:
+        note = ""
     seed_text = json.dumps([_brief(c) for c in seed], ensure_ascii=False)
     contents = [{"role": "user", "parts": [{"text":
         f"پرسش: {question}{note}\n\nنتیجه‌های اولیه جستجوی معنایی برای همین پرسش:\n{seed_text}"}]}]

@@ -103,7 +103,7 @@ def meta():
 
 @app.get("/api/search")
 def search(q: str = Q, mode: Literal["semantic", "keyword"] = "semantic",
-           speaker: Speaker = None, limit: int = Query(20, ge=1, le=60)):
+           speaker: Speaker = None, limit: int = Query(20, ge=1, le=60), soft: bool = False):
     index = get_index()
     t0 = time.perf_counter()
     detected, fallback = None, False
@@ -111,9 +111,11 @@ def search(q: str = Q, mode: Literal["semantic", "keyword"] = "semantic",
         results, total = index.keyword(q, speaker, limit)
     else:
         # "احادیث امام علی درباره مرگ" searches "مرگ" among Imam Ali's hadiths.
-        if speaker is None:
-            detected, q = detect_speaker(q)
-            speaker = detected
+        # soft: the page's default scope, which a named speaker overrides.
+        if speaker is None or soft:
+            found, rest = detect_speaker(q)
+            if found:
+                detected, q, speaker = found, rest, found
         try:
             results, total = index.semantic(q, speaker, limit), None
         except Exception:
@@ -171,11 +173,12 @@ def _cached_answer(key):
 
 
 @app.get("/api/research")
-def research_stream(q: str = Q, speaker: Speaker = None):
+def research_stream(q: str = Q, speaker: Speaker = None, soft: bool = False):
     q = " ".join(q.split())
     # The first search uses the question without the speaker's name in it.
     found, seed_query = detect_speaker(q)
-    speaker = speaker or found
+    if found and (speaker is None or soft):
+        speaker = found
     key = (q, speaker)
 
     def events():
