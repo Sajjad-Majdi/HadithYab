@@ -32,7 +32,7 @@ $("#theme").addEventListener("click", () => {
 // ---- donate ------------------------------------------------------------------
 
 $("#copy-card").addEventListener("click", async (e) => {
-  if (await copyText("6219861967576876")) { e.target.textContent = "کپی شد"; toast("شماره کارت کپی شد. خدا خیرتان دهد"); }
+  if (await copyText("6219861967576876")) { e.target.textContent = "کپی شد"; }
   setTimeout(() => { e.target.textContent = "کپی شماره کارت"; }, 2000);
 });
 
@@ -202,16 +202,19 @@ function flashDone(btn) {
 // ---- speakers ---------------------------------------------------------------
 
 const MENU = $("#speaker-menu"), SPEAKER_BTN = $("#speaker"), SPEAKER_LABEL = $("#speaker-label");
+const WHO_ICON = $("#speaker .who-ico");
+const PERSON = '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>';
+const BOOK = '<path d="M4 5.5C6.5 4.5 9.5 4.5 12 6c2.5-1.5 5.5-1.5 8-.5V19c-2.5-1-5.5-1-8 .5-2.5-1.5-5.5-1.5-8-.5z"/><path d="M12 6v13.5"/>';
 const TICK = '<svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>';
 
-function option(key, label, count, wide) {
+function option(key, label, count, wide, icon) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "who-opt" + (wide ? " wide" : "");
   b.setAttribute("role", "option");
   b.dataset.key = key;
   b.setAttribute("aria-selected", String(state.speaker === key));
-  b.innerHTML = TICK;
+  b.innerHTML = TICK + (icon ? `<svg class="kind" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>` : "");
   b.append(label, Object.assign(document.createElement("small"), { textContent: fa(count) }));
   return b;
 }
@@ -226,7 +229,7 @@ function renderSpeakers() {
   const books = state.books.filter((b) => b.count && b.key !== "hadith");
   if (books.length) {
     grid.append(Object.assign(document.createElement("div"), { className: "group", textContent: "کتاب" }));
-    books.forEach((b) => grid.append(option(b.key, b.label, b.count)));
+    books.forEach((b) => grid.append(option(b.key, b.label, b.count, false, BOOK)));
   }
   grid.append(Object.assign(document.createElement("div"), { className: "group", textContent: "چهارده معصوم" }));
   list.filter((sp) => sp.key !== "other").forEach((sp) => grid.append(option(sp.key, sp.label, sp.count)));
@@ -235,6 +238,7 @@ function renderSpeakers() {
   MENU.replaceChildren(grid);
   const current = [...list, ...state.books].find((sp) => sp.key === state.speaker);
   SPEAKER_LABEL.textContent = current ? current.label : "همه معصومین";
+  WHO_ICON.innerHTML = state.books.some((b) => b.key === state.speaker) ? BOOK : PERSON;
   SPEAKER_BTN.classList.toggle("on", state.speaker !== "all");
 }
 

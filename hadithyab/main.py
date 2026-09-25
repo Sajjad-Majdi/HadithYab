@@ -25,7 +25,7 @@ from .research.agent import research
 from .research.rerank import rerank
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 SPEAKER_ORDER = [k for k, _, _ in SPEAKERS] + ["other"]
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
