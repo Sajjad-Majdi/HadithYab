@@ -1,6 +1,6 @@
 """Embed the whole corpus and write the app's index.
 
-Run from Source Code/:  python scripts/build_index.py [--docs-only]
+Run from Source Code/:  python scripts/build_index.py [--docs-only | --local | --check-local]
 The model is EMBED_MODEL (see hadithyab/core/embed.py). It resumes: finished
 batches stay in data/build/<model>/ and are skipped, so a run cut short by a
 quota simply continues the next day.
@@ -109,6 +109,49 @@ def cloudflare_batch(texts):
     return None
 
 
+# ---- Local: the same open EmbeddingGemma weights, on this machine's CPU --------
+# Workers AI serves google/embeddinggemma-300m; running the same weights here
+# (python scripts/build_index.py --local) gives vectors the live site's
+# Workers AI queries can be compared with. check_local() measures that first.
+
+_local_model = None
+_local_lock = threading.RLock()  # local_batch holds it while local_model() takes it again
+
+
+def local_model():
+    global _local_model
+    with _local_lock:
+        if _local_model is None:
+            import torch
+            from sentence_transformers import SentenceTransformer
+            # Downloaded once (with IDM) into data/models; the HF id is only a fallback.
+            path = os.path.join(ROOT, "data", "models", "embeddinggemma-300m")
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            _local_model = SentenceTransformer(path if os.path.exists(path) else "google/embeddinggemma-300m",
+                                               device=device)
+            print(f"local model on {device}", flush=True)
+        return _local_model
+
+
+def local_batch(texts):
+    _model, _dim, _query_body, doc_body = embed.CF_MODELS[embed.EMBED_MODEL]
+    prompts = doc_body(texts)["text"]  # the exact strings Workers AI was given
+    with _local_lock:
+        a = local_model().encode(prompts, batch_size=32, convert_to_numpy=True, normalize_embeddings=True)
+    return a.astype(np.float32)
+
+
+def check_local(sample=64):
+    """Cosine between local and Workers AI vectors for texts embedded both ways."""
+    docs = load_corpus()[:sample]
+    work = os.path.join(ROOT, "data", "build", embed.EMBED_MODEL)
+    cf = np.concatenate([np.load(os.path.join(work, f"{n:05d}.npy")) for n in range(sample // BATCH)]).astype(np.float32)
+    mine = local_batch([embed.doc_text(d) for d in docs])
+    cos = (cf * mine).sum(1) / np.linalg.norm(cf, axis=1) / np.linalg.norm(mine, axis=1)
+    print(f"local vs Workers AI cosine: min {cos.min():.4f}, mean {cos.mean():.4f}", flush=True)
+    return float(cos.min())
+
+
 def write_docs(docs):
     """The hadith texts and the keyword index; no API calls, so it is cheap to redo."""
     os.makedirs(OUT, exist_ok=True)
@@ -135,7 +178,7 @@ def embed_collection(name, docs, worker):
     print(f"{name}: {len(docs)} texts, {len(todo)} of {n_batches} batches to go", flush=True)
     done = 0
     if todo:
-        with ThreadPoolExecutor(6) as pool:
+        with ThreadPoolExecutor(1 if worker is local_batch else 6) as pool:
             jobs = {pool.submit(worker, texts): n for n, texts in todo}
             for job in as_completed(jobs):
                 vecs = job.result()
@@ -169,10 +212,14 @@ def main():
         print("docs and keyword index written", flush=True)
         return 0
 
+    if "--check-local" in sys.argv:
+        return 0 if check_local() > 0.99 else 1
     if GEMINI:
         from scripts.gemini_keys import valid_keys
         slots = Slots(valid_keys())
         worker = lambda texts: gemini_batch(slots, texts)  # noqa: E731
+    elif "--local" in sys.argv:
+        worker = local_batch
     else:
         worker = cloudflare_batch
 

@@ -219,6 +219,8 @@ main { flex: 1; }
 .who-opt[aria-selected="true"] small { color: var(--lapis); }
 .who-opt .tick { width: 14px; height: 14px; flex: none; visibility: hidden; }
 .who-opt[aria-selected="true"] .tick { visibility: visible; }
+.who-opt .kind { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--ink-3); }
+.who-opt[aria-selected="true"] .kind { color: var(--lapis); }
 @media (max-width: 420px) { .who-menu .grid { grid-template-columns: 1fr; } }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 

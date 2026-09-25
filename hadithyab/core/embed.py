@@ -98,12 +98,28 @@ def _gemini_query(text):
     raise RuntimeError(f"Gemini {r.status_code}: {r.text[:200]}")
 
 
+# EMBED_LOCAL=<model folder>: embed queries on this machine with the same open
+# weights (identical vectors, cosine 1.000). For local runs only; Render keeps
+# using Workers AI.
+EMBED_LOCAL = os.environ.get("EMBED_LOCAL", "")
+
+
+@lru_cache(maxsize=1)
+def _local_model():
+    import torch
+    from sentence_transformers import SentenceTransformer
+    return SentenceTransformer(EMBED_LOCAL, device="cuda" if torch.cuda.is_available() else "cpu")
+
+
 @lru_cache(maxsize=4096)
 def _embed_cached(text):
     last = None
     for _ in range(2):
         try:
-            if EMBED_MODEL == GEMINI_MODEL:
+            if EMBED_LOCAL:
+                model, _dim, query_body, _doc_body = CF_MODELS[EMBED_MODEL]
+                vec = _local_model().encode(query_body([text])["text"])[0]
+            elif EMBED_MODEL == GEMINI_MODEL:
                 vec = _gemini_query(text)
             else:
                 model, _dim, query_body, _doc_body = CF_MODELS[EMBED_MODEL]

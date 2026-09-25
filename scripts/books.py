@@ -32,6 +32,7 @@ SURAHS = """فاتحه بقره آل‌عمران نساء مائده انعام
 اخلاص فلق ناس""".split()
 assert len(SURAHS) == 114
 
+NAHJ_CHUNK = 600  # Persian characters per Nahj chunk
 NAHJ_SECTION = {"sermon": "خطبه", "letter": "نامه", "saying": "حکمت"}
 FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
 
@@ -70,19 +71,6 @@ def _blocks(raw):
     return [b["v"].strip() for b in json.loads(raw) if b.get("t") == "p" and b.get("v", "").strip()]
 
 
-def _split(paras, target=1300):
-    """Group paragraphs into chunks near `target` characters."""
-    chunks, cur = [], []
-    for p in paras:
-        if cur and sum(map(len, cur)) + len(p) > target:
-            chunks.append(cur)
-            cur = []
-        cur.append(p)
-    if cur:
-        chunks.append(cur)
-    return chunks
-
-
 _SENTENCE = re.compile(r"(?<=[.!?؟:])\s+")
 
 
@@ -101,6 +89,32 @@ def _units(paras, most=320):
             if u:
                 out.append(u)
     return out
+
+
+def _pieces(paras, target):
+    """Persian paragraphs as (paragraph number, text) pieces no longer than
+    about `target`: a long paragraph is cut at sentence ends, so one chunk never
+    has to swallow a whole page."""
+    out = []
+    for i, p in enumerate(paras):
+        for u in (_units([p], most=target) if len(p) > target else [p]):
+            out.append((i, u))
+    return out
+
+
+def _chunk(pieces, target):
+    """Group pieces into chunks near `target` characters; pieces of one
+    paragraph are joined with a space, paragraphs with a new line."""
+    chunks, cur = [], []
+    for piece in pieces:
+        if cur and sum(len(t) for _, t in cur) + len(piece[1]) > target:
+            chunks.append(cur)
+            cur = []
+        cur.append(piece)
+    if cur:
+        chunks.append(cur)
+    return [["\n".join(" ".join(t for j, t in c if j == i) for i in dict.fromkeys(j for j, _ in c))]
+            for c in chunks]
 
 
 def _align(units, weights):
@@ -133,11 +147,13 @@ def load_nahj():
         if not fa_paras and not ar_paras:
             continue
         units = _units(ar_paras)
-        target = 1300
-        chunks = _split(fa_paras, target) or [[]]
+        # Small chunks: Nahj is dense, and one vector for a page-long stretch
+        # blurs the many separate points in it.
+        target = NAHJ_CHUNK
+        chunks = _chunk(_pieces(fa_paras, target), target) or [[]]
         while len(chunks) > max(1, len(units)):  # never more parts than Arabic sentences
             target *= 1.5
-            chunks = _split(fa_paras, target)
+            chunks = _chunk(_pieces(fa_paras, target), target)
         ar_parts = _align(units, [sum(map(len, c)) or 1 for c in chunks])
         name = f"نهج‌البلاغه، {NAHJ_SECTION[cat]} {num}".translate(FA_DIGITS)
         for i, (fa_part, ar_part) in enumerate(zip(chunks, ar_parts)):
