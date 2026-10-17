@@ -25,8 +25,8 @@ LIMITS = {
 # The one inline script (theme restore) is pinned by its hash in the template.
 CSP = ("default-src 'self'; "
        "script-src 'self' 'sha256-{theme}'; "
-       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-       "font-src https://fonts.gstatic.com; "
+       "style-src 'self' 'unsafe-inline'; "
+       "font-src 'self'; "
        "img-src 'self' data:; connect-src 'self'; "
        "base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'")
 
@@ -72,7 +72,9 @@ class Guard(BaseHTTPMiddleware):
         h["Referrer-Policy"] = "strict-origin-when-cross-origin"
         h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         h["Cross-Origin-Opener-Policy"] = "same-origin"
-        if path.startswith("/static/"):  # file names carry ?v=<version>
+        if path.startswith("/static/fonts/"):  # a font file never changes under its name
+            h["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path.startswith("/static/"):  # file names carry ?v=<version>
             h["Cache-Control"] = "public, max-age=604800"
         if request.headers.get("x-forwarded-proto") == "https":
             h["Strict-Transport-Security"] = "max-age=31536000"
