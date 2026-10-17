@@ -1,0 +1,28 @@
+{# One text, the same markup app.js builds, so the server copy and the live copy look alike. #}
+{% macro card(h, nested=False, full=False) -%}
+<article class="hadith{{ ' quran' if h.kind == 'quran' }}" id="{{ '' if nested else 'h-' ~ h.id }}" data-id="{{ h.id }}">
+  <div class="meta">
+    <span class="who">{{ h.speaker_label or h.from }}{{ ' · نهج‌البلاغه' if h.kind == 'nahj' }}</span>
+    <a class="num" href="/h/{{ h.id }}" title="پیوند این متن">#{{ fa(h.id) }}</a>
+    <span class="src">{% if h.source %}منبع: {{ h.source }}{% endif %}{% if h.kind == 'quran' %} · <a class="credit" href="https://tanzil.net" rel="noopener" target="_blank">متن: تنزیل</a>{% endif %}</span>
+  </div>
+  {% if h.ar %}<p class="ar" lang="ar" dir="rtl">{{ h.ar }}</p>{% endif %}
+  <p class="fa">{{ h.fa }}</p>
+</article>
+{%- endmacro %}
+
+{% macro crumbs(items) -%}
+<nav class="crumbs" aria-label="مسیر">
+  <a href="/">حدیث‌یاب</a>{% for label, href in items %}<span aria-hidden="true">/</span>{% if href %}<a href="{{ href }}">{{ label }}</a>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}{% endfor %}
+</nav>
+{%- endmacro %}
+
+{% macro pager(page, pages, base) -%}
+{% if pages > 1 %}
+<nav class="pager" aria-label="صفحه‌ها">
+  {% if page > 1 %}<a rel="prev" href="{{ base }}{{ '' if page == 2 else '?page=' ~ (page - 1) }}">صفحه قبل</a>{% endif %}
+  <span>صفحه {{ fa(page) }} از {{ fa(pages) }}</span>
+  {% if page < pages %}<a rel="next" href="{{ base }}?page={{ page + 1 }}">صفحه بعد</a>{% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}

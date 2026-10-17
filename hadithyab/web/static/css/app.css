@@ -148,7 +148,7 @@ main { flex: 1; }
 .home .bar { border-color: transparent; }
 .home main { display: flex; flex-direction: column; justify-content: center; padding-bottom: 12vh; }
 .hero img { border-radius: 50%; display: block; margin: 0 auto 10px; }
-.hero h1 { margin: 0; font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
+.hero h1, .hero .h1 { margin: 0; font-size: 2.1rem; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
 .hero p { margin: 4px auto 26px; max-width: 30em; color: var(--ink-2); font-size: 1rem; line-height: 1.9; text-wrap: balance; }
 
 /* ---- search ---- */
@@ -319,7 +319,39 @@ svg.spark { width: 15px; height: 15px; fill: initial; stroke: none; flex: none; 
 .more { margin: 18px 0; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 8px 22px; cursor: pointer; }
 .more:hover { border-color: var(--lapis); color: var(--lapis); }
 
-.foot { display: flex; justify-content: center; padding-block: 28px; color: var(--ink-3); font-size: .85rem; }
+.foot { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-block: 28px; color: var(--ink-3); font-size: .85rem; }
+.foot-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; }
+.foot-nav a { color: var(--ink-3); text-decoration: none; }
+.foot-nav a:hover { color: var(--lapis); text-decoration: underline; }
+
+/* ---- reading pages: the Quran, Nahj al-Balagha, hadith lists, about ---- */
+.read { padding-top: 18px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: .82rem; color: var(--ink-3); }
+.crumbs a { color: var(--ink-3); text-decoration: none; }
+.crumbs a:hover { color: var(--lapis); text-decoration: underline; }
+.read h1 { margin: 6px 0 4px; font-size: 1.5rem; line-height: 1.6; color: var(--ink); }
+.read .lead { margin: 0 0 18px; color: var(--ink-2); max-width: 46em; }
+.index-group h2, .prose h2 { margin: 22px 0 8px; font-size: 1.05rem; color: var(--ink); }
+.index-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.index-list.wide { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.index-list a {
+  display: flex; flex-direction: column; gap: 0; height: 100%; padding: 8px 12px; border-radius: 10px;
+  background: var(--surface); color: var(--ink); text-decoration: none; border: 1px solid transparent;
+}
+.index-list a:hover { border-color: var(--lapis); color: var(--lapis); }
+.index-list small { color: var(--ink-3); font-size: .78rem; line-height: 1.6; }
+.read .results { margin-top: 6px; }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 22px 0 6px; font-size: .9rem; color: var(--ink-3); }
+.pager a { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 6px 16px; text-decoration: none; }
+.pager a:hover { border-color: var(--lapis); color: var(--lapis); }
+.prose { max-width: 46em; }
+.prose p, .prose li { color: var(--ink-2); }
+.facts { margin: 0; padding-inline-start: 20px; }
+.faq { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; padding: 10px 0; list-style-position: inside; color: var(--ink); }
+.faq summary h3 { display: inline; margin: 0; font-size: .98rem; font-weight: 600; }
+.faq p { margin: 0 0 12px; }
+.prose .en { text-align: left; font-family: system-ui, sans-serif; }
 
 .toast {
   position: fixed; inset-inline: 0; bottom: 22px; margin: auto; width: max-content; max-width: calc(100% - 32px);
@@ -331,7 +363,7 @@ svg.spark { width: 15px; height: 15px; fill: initial; stroke: none; flex: none; 
 @media (max-width: 600px) {
   .search { padding-top: 14px; }
   .give { padding: 0 11px; }
-  .hero h1 { font-size: 1.8rem; }
+  .hero h1, .hero .h1 { font-size: 1.8rem; }
   .home .opts { gap: 6px; }
   .hadith { padding: 14px 16px 8px; }
   .ar { font-size: 1.38rem; }

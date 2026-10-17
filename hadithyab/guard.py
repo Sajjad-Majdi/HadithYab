@@ -19,6 +19,7 @@ LIMITS = {
     "/api/rerank": (30, 60),
     "/api/search": (60, 60),
     "/api/similar": (60, 60),
+    "/?q": (20, 60),
 }
 
 # The one inline script (theme restore) is pinned by its hash in the template.
@@ -55,8 +56,10 @@ class Guard(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         path = request.url.path
+        # The home page with ?q= runs a real search for readers without script.
+        probe = "/?q" if path == "/" and request.query_params.get("q") else path
         for prefix, (limit, window) in LIMITS.items():
-            if path.startswith(prefix):
+            if probe.startswith(prefix):
                 ip = request.client.host if request.client else "?"
                 if not self._allowed((ip, prefix), limit, window):
                     return JSONResponse({"error": "درخواست‌ها زیاد شد. یک دقیقه صبر کنید و دوباره تلاش کنید."},
@@ -69,6 +72,8 @@ class Guard(BaseHTTPMiddleware):
         h["Referrer-Policy"] = "strict-origin-when-cross-origin"
         h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         h["Cross-Origin-Opener-Policy"] = "same-origin"
+        if path.startswith("/static/"):  # file names carry ?v=<version>
+            h["Cache-Control"] = "public, max-age=604800"
         if request.headers.get("x-forwarded-proto") == "https":
             h["Strict-Transport-Security"] = "max-age=31536000"
         return response

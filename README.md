@@ -13,12 +13,17 @@
 - **احادیث مشابه** و **نقل‌های دیگر** همان حدیث، زیر هر نتیجه
 - **حمایت**: کارت‌به‌کارت با دکمه کپی شماره کارت
 - کپی متن با منبع، پیوند مستقیم به هر حدیث (`/h/<شماره>`)، حالت روشن و تاریک
+- **صفحه‌های خواندنی برای موتورهای جستجو و هوش مصنوعی**: `/quran` و `/quran/<سوره>`، `/nahj` و `/nahj/<sermon|letter|saying>/<شماره>`، `/hadith` و `/hadith/<گوینده>?page=`، `/about` (درباره و پرسش‌های رایج). متن هر صفحه در خود HTML است؛ `/?q=` هم ۱۰ نتیجه اول را در HTML می‌دهد (noindex)
+- **سئو**: عنوان، توضیح، canonical، Open Graph و JSON-LD جدا برای هر صفحه (WebSite با SearchAction، Organization، Quotation، BreadcrumbList، FAQPage)، `robots.txt`، `sitemap.xml` (فهرست نقشه‌ها: صفحه‌ها و ۴۶ هزار متن)، `llms.txt` برای دستیارهای هوش مصنوعی
 
 ## ساختار
 
 ```
 hadithyab/                 برنامه (FastAPI)
-  main.py                  مسیرها: صفحه، API و جریان پژوهش
+  main.py                  API، جریان پژوهش و راه‌اندازی
+  pages.py                 صفحه‌های HTML: خانه، هر متن، قرآن، نهج‌البلاغه، احادیث، درباره، نقشه سایت
+  browse.py                فهرست سوره‌ها، بخش‌های نهج‌البلاغه و احادیث هر گوینده
+  seo.py                   robots.txt، sitemap، llms.txt، JSON-LD، پرسش‌های رایج
   core/
     text.py                پاک‌سازی متن، تشخیص گوینده
     embed.py               ساخت بردار پرسش (Workers AI یا Gemini)
@@ -29,7 +34,7 @@ hadithyab/                 برنامه (FastAPI)
     rerank.py              مرتب‌سازی دوباره نتایج با مدل زبانی
     llm.py                 زنجیره مدل‌های زبانی رایگان
   web/
-    templates/index.html
+    templates/             base.html، index.html، browse.html، about.html، _cards.html
     static/{css,js,img}/
   index/                   فهرست ساخته‌شده (بردارها و احادیث)
 scripts/
@@ -81,6 +86,8 @@ python scripts/dev.py
 | `CF_ACCOUNT_ID`، `CF_API_TOKEN` | بردار پرسش از Workers AI (توکن با دسترسی Workers AI) |
 | `GEMINI_API_KEYS` | کلیدهای Gemini با ویرگول جدا، برای حالت پژوهش |
 | `EMBED_MODEL` | پیش‌فرض `embeddinggemma-300m` |
+| `SITE_URL` | نشانی اصلی سایت برای canonical و sitemap (پیش‌فرض `https://hadithyab.onrender.com`) |
+| `GOOGLE_SITE_VERIFICATION` | کد تأیید Google Search Console (اختیاری؛ متا تگ `google-site-verification`) |
 
 ---
 

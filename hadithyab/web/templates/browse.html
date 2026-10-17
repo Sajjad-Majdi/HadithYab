@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_cards.html" import card, crumbs, pager %}
+{% block main %}
+<div class="read">
+  {{ crumbs(trail) }}
+  <h1>{{ seo.h1 }}</h1>
+  {% if intro %}<p class="lead">{{ intro }}</p>{% endif %}
+
+  {% for group in groups %}
+  <section class="index-group">
+    {% if group.title %}<h2>{{ group.title }}</h2>{% endif %}
+    <ul class="index-list{{ ' wide' if group.wide }}">
+      {% for item in group.links %}
+      <li><a href="{{ item.href }}"><span>{{ item.label }}</span>{% if item.note %}<small>{{ item.note }}</small>{% endif %}</a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+
+  {% if cards %}
+  <section class="results">
+    {% for h in cards %}{{ card(h) }}{% endfor %}
+  </section>
+  {% endif %}
+
+  {{ pager(page, pages, base) if pages }}
+
+  {% if prev or next %}
+  <nav class="pager" aria-label="پیمایش">
+    {% if prev %}<a rel="prev" href="{{ prev.href }}">{{ prev.label }}</a>{% else %}<span></span>{% endif %}
+    {% if next %}<a rel="next" href="{{ next.href }}">{{ next.label }}</a>{% endif %}
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}
