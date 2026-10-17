@@ -5,6 +5,8 @@ from xml.sax.saxutils import escape
 SITE = os.environ.get("SITE_URL", "https://hadithyab.onrender.com").rstrip("/")
 LASTMOD = "2026-10-17"  # the day the texts or the page set last changed
 SITEMAP_CHUNK = 10000
+# Google Search Console ownership tag (public); the env var overrides it.
+GOOGLE_VERIFY = "JSV18UFHXFGuv27c-k4OChm2I-D1FqssgwXPay02Z3Q"
 DESCRIPTION = ("جستجوی معنایی در قرآن کریم، نهج‌البلاغه و حدود ۳۸ هزار حدیث از پیامبر و اهل‌بیت، "
                "با متن عربی، ترجمه فارسی و منبع هر متن. رایگان و بدون ثبت‌نام.")
 
