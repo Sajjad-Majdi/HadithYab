@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_cards.html" import crumbs %}
+{% block main %}
+<div class="read prose">
+  {{ crumbs([("درباره و پرسش‌ها", None)]) }}
+  <h1>{{ seo.h1 }}</h1>
+  <p class="lead">حدیث‌یاب جستجوگری رایگان برای قرآن کریم، نهج‌البلاغه و احادیث پیامبر و اهل‌بیت است. موضوعی را که دنبالش هستید به فارسی یا عربی بنویسید؛ حدیث‌یاب متن‌هایی را می‌آورد که همان معنا را دارند، با متن عربی، ترجمه فارسی و نام منبع.</p>
+
+  <h2>چه چیزهایی را می‌شود گشت</h2>
+  <ul class="facts">
+    <li><a href="/quran">قرآن کریم</a>: {{ fa(counts.quran) }} آیه در ۱۱۴ سوره، متن عربی تنزیل با ترجمه آیت‌الله مکارم شیرازی.</li>
+    <li><a href="/nahj">نهج‌البلاغه</a>: خطبه‌ها، نامه‌ها و حکمت‌های امام علی با ترجمه محمد دشتی، در {{ fa(counts.nahj) }} بخش.</li>
+    <li><a href="/hadith">احادیث معصومین</a>: {{ fa(counts.hadith) }} حدیث از پیامبر اکرم، حضرت زهرا و دوازده امام، هر کدام با منبع.</li>
+  </ul>
+
+  <h2>سه راه جستجو</h2>
+  <ul class="facts">
+    <li><b>معنایی</b>: موضوع را با واژه‌های خودتان بنویسید، مثلاً «<a href="/?q={{ 'حق همسایه' | urlencode }}&amp;m=semantic&amp;s=hadith">حق همسایه</a>».</li>
+    <li><b>واژه دقیق</b>: متن‌هایی که همه واژه‌های شما را دارند؛ عبارت داخل گیومه عیناً جستجو می‌شود.</li>
+    <li><b>هوشواره‌ای</b>: دستیار هوش مصنوعی چند بار می‌گردد و پاسخی کوتاه با ارجاع به شماره هر متن می‌نویسد.</li>
+  </ul>
+
+  <h2>پرسش‌های رایج</h2>
+  {% for q, a in faq %}
+  <details class="faq"{{ ' open' if loop.first }}>
+    <summary><h3>{{ q }}</h3></summary>
+    <p>{{ a }}</p>
+  </details>
+  {% endfor %}
+
+  <h2>About HadithYab (English)</h2>
+  <p lang="en" dir="ltr" class="en">HadithYab is a free semantic search engine for the Holy Quran, Nahj al-Balagha and about {{ "{:,}".format(counts.hadith) }} Shia hadiths. Type a topic in Persian or Arabic and get matching texts with the Arabic original, a Persian translation and the source book. Every text has a stable link (<code>/h/&lt;id&gt;</code>). It does not grade chains of narration and gives no religious rulings. Machine-readable summary: <a href="/llms.txt">llms.txt</a>.</p>
+</div>
+{% endblock %}

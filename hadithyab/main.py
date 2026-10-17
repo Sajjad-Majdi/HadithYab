@@ -14,10 +14,11 @@ from typing import List, Literal, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import pages
 from .core.index import get_index
 from .guard import Guard
 from .core.text import BOOKS, SPEAKER_LABELS, SPEAKERS, detect_speaker
@@ -25,7 +26,7 @@ from .research.agent import research
 from .research.rerank import rerank
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 SPEAKER_ORDER = [k for k, _, _ in SPEAKERS] + ["other"]
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
@@ -42,12 +43,13 @@ async def lifespan(_app):
 
 app = FastAPI(title="حدیث‌یاب", version=VERSION, lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=os.path.join(WEB, "static")), name="static")
-templates = Jinja2Templates(directory=os.path.join(WEB, "templates"))
+pages.setup(VERSION)
+app.include_router(pages.router)
 
 
 def _inline_script_hash():
     """CSP hash of the page's one inline script, read from the template itself."""
-    with open(os.path.join(WEB, "templates", "index.html"), encoding="utf-8") as f:
+    with open(os.path.join(WEB, "templates", "base.html"), encoding="utf-8") as f:
         body = re.search(r"<script>(.*?)</script>", f.read(), re.S).group(1)
     return base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode()
 
@@ -65,8 +67,10 @@ def _doc(doc_id):
     return index
 
 
-@app.exception_handler(HTTPException)
-async def http_error(_request, exc):
+@app.exception_handler(StarletteHTTPException)
+async def http_error(request, exc):
+    if exc.status_code == 404 and not request.url.path.startswith("/api/"):
+        return pages.not_found(request)
     return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
 
 
@@ -79,17 +83,6 @@ async def bad_input(_request, _exc):
 @app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok", "texts": len(get_index()), "version": VERSION}
-
-
-@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-def page(request: Request):
-    return templates.TemplateResponse(request, "index.html", {"version": VERSION, "hadith": None})
-
-
-@app.get("/h/{doc_id}", response_class=HTMLResponse)
-def hadith_page(request: Request, doc_id: int):
-    card = _doc(doc_id).card(doc_id)
-    return templates.TemplateResponse(request, "index.html", {"version": VERSION, "hadith": card})
 
 
 @app.get("/api/meta")

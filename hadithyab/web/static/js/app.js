@@ -633,7 +633,7 @@ window.addEventListener("popstate", () => { readUrl(); renderSpeakers(); run(); 
   if (initial) {
     const h = JSON.parse(initial.textContent);
     const node = renderHadith(h, { full: true });
-    els.results.append(node);
+    els.results.replaceChildren(node); // the server's copy is for readers without script
     $('[data-act="similar"]', node).click();
   } else {
     readUrl();
