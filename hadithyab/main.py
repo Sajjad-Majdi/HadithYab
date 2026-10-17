@@ -3,6 +3,7 @@ import base64
 import hashlib
 import json
 import logging
+import mimetypes
 import os
 import re
 import threading
@@ -26,7 +27,7 @@ from .research.agent import research
 from .research.rerank import rerank
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 SPEAKER_ORDER = [k for k, _, _ in SPEAKERS] + ["other"]
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
@@ -42,6 +43,7 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="حدیث‌یاب", version=VERSION, lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+mimetypes.add_type("font/woff2", ".woff2")  # Windows and slim images lack it
 app.mount("/static", StaticFiles(directory=os.path.join(WEB, "static")), name="static")
 pages.setup(VERSION)
 app.include_router(pages.router)
