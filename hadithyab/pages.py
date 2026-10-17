@@ -23,7 +23,7 @@ templates = Jinja2Templates(directory=os.path.join(WEB, "templates"))
 
 def setup(version):
     templates.env.globals.update(fa=browse.fa_num, site=seo.SITE, version=version,
-                                 google_verify=os.environ.get("GOOGLE_SITE_VERIFICATION", ""))
+                                 google_verify=os.environ.get("GOOGLE_SITE_VERIFICATION", seo.GOOGLE_VERIFY))
 
 
 def render(request, template, meta, jsonld, status_code=200, **context):
